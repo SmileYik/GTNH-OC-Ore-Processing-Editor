@@ -290,7 +290,7 @@ function renderProcessReverseMap(groups: ProcessReverseGroup[], level: number): 
 
   for (const group of groups) {
     lines.push(
-      `${indent(level + 1)}${escapeLuaString(group.signature)} = ${renderArrayBlock(group.minerals, level + 1)},`
+      `${indent(level + 1)}[${escapeLuaString(group.signature)}] = ${renderArrayBlock(group.minerals, level + 1)},`
     );
   }
 
