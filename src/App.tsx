@@ -26,8 +26,8 @@ import { ProcessBuilderModal } from './components/ProcessBuilderModal';
 import { Dashboard } from './components/dashboard/Dashboard';
 import type { ProcessSortMode, ReverseSortMode, SortDirection } from './components/dashboard/sortTypes';
 
-const STORAGE_KEY = 'filter-editor.config.v1';
-const STORAGE_NAME_KEY = 'filter-editor.config-name.v1';
+const STORAGE_KEY = 'oc-ore-processing-editor.config.v1';
+const STORAGE_NAME_KEY = 'oc-ore-processing-editor.config-name.v1';
 const COLLATOR = new Intl.Collator('zh-Hans-CN', { numeric: true, sensitivity: 'base' });
 
 type NoticeTone = 'info' | 'success' | 'error';
@@ -485,7 +485,7 @@ export function App() {
     <div className="app-shell" style={{ '--topbar-height': `${topbarHeight}px` } as CSSProperties}>
       <header className="topbar" ref={topbarRef}>
         <div className="topbar__copy">
-          <span className="topbar__eyebrow">Offline OC Ore Progress Editor</span>
+          <span className="topbar__eyebrow">Offline OC Ore Processing Editor</span>
           <h1>OC 矿处配置编辑器</h1>
           <p>离线浏览、修改并导出 OC矿处配置文件。</p>
         </div>
