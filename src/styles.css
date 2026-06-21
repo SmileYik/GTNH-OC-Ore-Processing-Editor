@@ -1411,3 +1411,81 @@ svg {
     display: inline-flex;
   }
 }
+
+@media (max-height: 820px) {
+  .app-shell {
+    padding-top: 12px;
+    padding-bottom: 18px;
+  }
+
+  .topbar {
+    top: 8px;
+    gap: 14px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    align-items: center;
+  }
+
+  .topbar__copy {
+    gap: 4px;
+  }
+
+  .topbar__eyebrow {
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+  }
+
+  .topbar h1 {
+    font-size: clamp(1.25rem, 2vw, 1.85rem);
+    line-height: 1.05;
+  }
+
+  .topbar p {
+    display: none;
+  }
+
+  .topbar__actions {
+    gap: 8px;
+  }
+
+  .meta-pills {
+    gap: 8px;
+  }
+
+  .chip {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+
+  .button {
+    min-height: 38px;
+  }
+
+  .button--compact {
+    min-height: 32px;
+  }
+}
+
+@media (max-height: 680px) {
+  .topbar {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .topbar__eyebrow,
+  .meta-pills {
+    display: none;
+  }
+
+  .topbar__copy {
+    gap: 0;
+  }
+
+  .topbar h1 {
+    font-size: 1.35rem;
+  }
+
+  .button-row {
+    gap: 8px;
+  }
+}
