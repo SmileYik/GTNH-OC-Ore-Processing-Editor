@@ -1,3 +1,4 @@
+import type { OreConfig } from '../../lib/OreConfig';
 import type { FilterGroup, InterfaceEntry, MineralProcess, ProcessReverseGroup, RoleEntry } from '../../lib/OreConfigManager';
 import { ExportSection } from './ExportSection';
 import { FilterListCard } from './FilterListCard';
@@ -39,13 +40,8 @@ interface DashboardProps {
   idBlacklist: FilterGroup[];
   onEditWhitelist: () => void;
   onEditBlacklist: () => void;
-  exportText: string;
-  exportSingleLine: boolean;
-  onToggleExportSingleLine: (value: boolean) => void;
-  onCopyExport: () => void;
-  onDownloadExport: () => void;
-  whitelistCount: number;
-  blacklistCount: number;
+  config: OreConfig;
+  fileName: string;
 }
 
 export function Dashboard({
@@ -80,13 +76,8 @@ export function Dashboard({
   idBlacklist,
   onEditWhitelist,
   onEditBlacklist,
-  exportText,
-  exportSingleLine,
-  onToggleExportSingleLine,
-  onCopyExport,
-  onDownloadExport,
-  whitelistCount,
-  blacklistCount
+  config,
+  fileName
 }: DashboardProps) {
   return (
     <main className="dashboard">
@@ -135,13 +126,8 @@ export function Dashboard({
       <FilterListCard title="黑名单" kindLabel="给指定职责的机器设置物品黑名单, 格式为: 物品内部名称#物品损伤值" groups={idBlacklist} onEdit={onEditBlacklist} />
 
       <ExportSection
-        exportText={exportText}
-        singleLine={exportSingleLine}
-        onToggleSingleLine={onToggleExportSingleLine}
-        onCopy={onCopyExport}
-        onDownload={onDownloadExport}
-        whitelistCount={whitelistCount}
-        blacklistCount={blacklistCount}
+        config={config}
+        fileName={fileName}
       />
     </main>
   );

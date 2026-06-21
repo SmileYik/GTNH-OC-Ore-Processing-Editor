@@ -28,19 +28,13 @@ import { sampleConfigName, sampleConfigText } from './sampleConfig';
 import { ImportConfigModal } from './components/ImportConfigModal';
 import { InterfaceEditorModal, ListEditorModal, RoleEditorModal } from './components/Editors';
 import { ProcessBuilderModal } from './components/ProcessBuilderModal';
+import { Notice, type NoticeMessage, useAutoDismissNotice } from './components/Notice';
 import { Dashboard } from './components/dashboard/Dashboard';
 import type { ProcessSortMode, ReverseSortMode, SortDirection } from './components/dashboard/sortTypes';
 
 const STORAGE_KEY = 'oc-ore-processing-editor.config.v1';
 const STORAGE_NAME_KEY = 'oc-ore-processing-editor.config-name.v1';
 const COLLATOR = new Intl.Collator('zh-Hans-CN', { numeric: true, sensitivity: 'base' });
-
-type NoticeTone = 'info' | 'success' | 'error';
-
-interface Notice {
-  tone: NoticeTone;
-  text: string;
-}
 
 type EditorState =
   | {
@@ -166,7 +160,7 @@ export function App() {
   const [config, setConfig] = useState<OreConfig>(() => createInitialConfig());
   const [fileName, setFileName] = useState<string>(() => createInitialFileName());
   const [editor, setEditor] = useState<EditorState>(null);
-  const [notice, setNotice] = useState<Notice | null>(null);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const [topbarHeight, setTopbarHeight] = useState(0);
   const [processSearch, setProcessSearch] = useState('');
   const [reverseSearch, setReverseSearch] = useState('');
@@ -175,13 +169,10 @@ export function App() {
   const [reverseSortMode, setReverseSortMode] = useState<ReverseSortMode>('length');
   const [reverseSortDirection, setReverseSortDirection] = useState<SortDirection>('default');
   const [importConfigOpen, setImportConfigOpen] = useState(false);
-  const [exportSingleLine, setExportSingleLine] = useState(false);
   const topbarRef = useRef<HTMLElement | null>(null);
-
-  const exportText = useMemo(
-    () => serializeOreConfig(config, { compact: exportSingleLine }),
-    [config, exportSingleLine]
-  );
+  const showNotice = (text: string, tone: NoticeMessage['tone'] = 'info') => {
+    setNotice({ tone, text });
+  };
   const roles = useMemo(() => getRoleEntries(config), [config]);
   const interfaces = useMemo(() => getInterfaceEntries(config), [config]);
   const processes = useMemo(() => getProcessEntries(config), [config]);
@@ -240,21 +231,14 @@ export function App() {
     }
 
     try {
-      window.localStorage.setItem(STORAGE_KEY, exportText);
+      window.localStorage.setItem(STORAGE_KEY, serializeOreConfig(config));
       window.localStorage.setItem(STORAGE_NAME_KEY, fileName);
     } catch {
       // LocalStorage may be unavailable in some private modes.
     }
-  }, [exportText, fileName]);
+  }, [config, fileName]);
 
-  useEffect(() => {
-    if (!notice) {
-      return undefined;
-    }
-
-    const timer = window.setTimeout(() => setNotice(null), 4000);
-    return () => window.clearTimeout(timer);
-  }, [notice]);
+  useAutoDismissNotice(notice, setNotice, 4000);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -287,10 +271,6 @@ export function App() {
     };
   }, []);
 
-  const showNotice = (text: string, tone: NoticeTone = 'info') => {
-    setNotice({ text, tone });
-  };
-
   const closeEditor = () => setEditor(null);
 
   const handleImportText = (text: string, nextFileName: string) => {
@@ -303,30 +283,6 @@ export function App() {
       showNotice(`已导入 ${nextFileName || sampleConfigName}`, 'success');
     } catch (error) {
       showNotice(`导入失败: ${getErrorMessage(error)}`, 'error');
-    }
-  };
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(exportText);
-      showNotice('已复制为文本', 'success');
-    } catch (error) {
-      showNotice(`复制失败: ${getErrorMessage(error)}`, 'error');
-    }
-  };
-
-  const handleDownload = () => {
-    try {
-      const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName || sampleConfigName;
-      link.click();
-      URL.revokeObjectURL(url);
-      showNotice(`已下载 ${link.download}`, 'success');
-    } catch (error) {
-      showNotice(`下载失败: ${getErrorMessage(error)}`, 'error');
     }
   };
 
@@ -519,11 +475,7 @@ export function App() {
         </div>
       </header>
 
-      {notice ? (
-        <div className={`notice notice--${notice.tone} notice--floating`} role="status" aria-live="polite">
-          {notice.text}
-        </div>
-      ) : null}
+      {notice ? <Notice tone={notice.tone} floating>{notice.text}</Notice> : null}
 
       <Dashboard
         processes={visibleProcesses}
@@ -557,13 +509,8 @@ export function App() {
         idBlacklist={idBlacklist}
         onEditWhitelist={openWhitelistEditor}
         onEditBlacklist={openBlacklistEditor}
-        exportText={exportText}
-        exportSingleLine={exportSingleLine}
-        onToggleExportSingleLine={setExportSingleLine}
-        onCopyExport={handleCopy}
-        onDownloadExport={handleDownload}
-        whitelistCount={stats.whitelistIds}
-        blacklistCount={stats.blacklistIds}
+        config={config}
+        fileName={fileName}
       />
 
       {roleEditor ? (

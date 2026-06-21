@@ -1,22 +1,62 @@
+import { useMemo, useState } from 'react';
+import type { OreConfig } from '../../lib/OreConfig';
+import { Notice, type NoticeMessage, useAutoDismissNotice } from '../Notice';
+import { serializeOreConfig } from '../../lib/OreConfigManager';
+
 interface ExportSectionProps {
-  exportText: string;
-  singleLine: boolean;
-  onToggleSingleLine: (value: boolean) => void;
-  onCopy: () => void;
-  onDownload: () => void;
-  whitelistCount: number;
-  blacklistCount: number;
+  config: OreConfig;
+  fileName: string;
 }
 
-export function ExportSection({
-  exportText,
-  singleLine,
-  onToggleSingleLine,
-  onCopy,
-  onDownload,
-  whitelistCount,
-  blacklistCount
-}: ExportSectionProps) {
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function countFilterIds(groups: OreConfig['idWhitelist']): number {
+  return Object.values(groups).reduce((sum, rule) => sum + Object.keys(rule).length, 0);
+}
+
+export function ExportSection({ config, fileName }: ExportSectionProps) {
+  const [singleLine, setSingleLine] = useState(false);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
+  const showNotice = (text: string, tone: NoticeMessage['tone'] = 'info') => {
+    setNotice({ tone, text });
+  };
+
+  const exportText = useMemo(
+    () => serializeOreConfig(config, { compact: singleLine }),
+    [config, singleLine]
+  );
+  const whitelistCount = useMemo(() => countFilterIds(config.idWhitelist), [config]);
+  const blacklistCount = useMemo(() => countFilterIds(config.idBlacklist), [config]);
+  const downloadName = fileName.trim() || 'setting.new';
+
+  useAutoDismissNotice(notice, setNotice, 3000);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(exportText);
+      showNotice('已复制文本', 'success');
+    } catch (error) {
+      showNotice(`复制失败: ${getErrorMessage(error)}`, 'error');
+    }
+  };
+
+  const handleDownload = () => {
+    try {
+      const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = downloadName;
+      link.click();
+      URL.revokeObjectURL(url);
+      showNotice(`已下载 ${downloadName}`, 'success');
+    } catch (error) {
+      showNotice(`下载失败: ${getErrorMessage(error)}`, 'error');
+    }
+  };
+
   return (
     <section className="export-panel">
       <div className="export-panel__header">
@@ -35,20 +75,22 @@ export function ExportSection({
           <input
             type="checkbox"
             checked={singleLine}
-            onChange={(event) => onToggleSingleLine(event.target.checked)}
+            onChange={(event) => setSingleLine(event.target.checked)}
           />
           <span>单行显示</span>
         </label>
 
         <div className="button-row">
-          <button type="button" className="button button--filled" onClick={onCopy}>
+          <button type="button" className="button button--filled" onClick={handleCopy}>
             复制文本
           </button>
-          <button type="button" className="button button--tonal" onClick={onDownload}>
+          <button type="button" className="button button--tonal" onClick={handleDownload}>
             下载文件
           </button>
         </div>
       </div>
+
+      {notice ? <Notice tone={notice.tone}>{notice.text}</Notice> : null}
 
       <textarea className="export-textarea" value={exportText} readOnly spellCheck={false} />
     </section>
