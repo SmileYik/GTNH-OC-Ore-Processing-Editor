@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
-import type { MineralProcess } from '../lib/luaConfig';
+import type { MineralProcess } from '../lib/OreConfigManager';
 import { StepPath } from './dashboard/common';
 import { Modal } from './Modal';
 

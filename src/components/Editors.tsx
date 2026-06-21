@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { cloneFilterGroups, type FilterGroup, type InterfaceEntry, type RoleEntry } from '../lib/luaConfig';
+import { cloneFilterGroups, type FilterGroup, type InterfaceEntry, type RoleEntry } from '../lib/OreConfigManager';
 import { Modal } from './Modal';
 
 function fieldRow(label: string, children: ReactNode, hint?: string) {

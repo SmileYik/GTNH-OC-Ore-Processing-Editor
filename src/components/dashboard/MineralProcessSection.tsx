@@ -1,4 +1,4 @@
-import type { MineralProcess } from '../../lib/luaConfig';
+import type { MineralProcess } from '../../lib/OreConfigManager';
 import { Section, StepPath } from './common';
 import type { ProcessSortMode, SortDirection } from './sortTypes';
 

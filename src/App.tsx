@@ -2,14 +2,18 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import {
   buildProcessReverse,
   collectAvailableSteps,
+  cloneOreConfig,
   deleteInterfaceEntry,
   deleteProcessEntry,
   deleteRoleEntry,
   EMPTY_CONFIG,
-  parseLuaConfig,
-  serializeLuaConfig,
+  getFilterGroups,
+  getInterfaceEntries,
+  getProcessEntries,
+  getRoleEntries,
+  parseOreConfig,
+  serializeOreConfig,
   setFilterGroups,
-  type ConfigModel,
   type FilterGroup,
   type InterfaceEntry,
   type MineralProcess,
@@ -18,7 +22,8 @@ import {
   upsertInterfaceEntry,
   upsertProcessEntry,
   upsertRoleEntry
-} from './lib/luaConfig';
+} from './lib/OreConfigManager';
+import { type OreConfig } from './lib/OreConfig';
 import { sampleConfigName, sampleConfigText } from './sampleConfig';
 import { ImportConfigModal } from './components/ImportConfigModal';
 import { InterfaceEditorModal, ListEditorModal, RoleEditorModal } from './components/Editors';
@@ -67,12 +72,12 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function createInitialConfig(): ConfigModel {
+function createInitialConfig(): OreConfig {
   if (typeof window !== 'undefined') {
     const savedText = window.localStorage.getItem(STORAGE_KEY);
     if (savedText) {
       try {
-        return parseLuaConfig(savedText);
+        return parseOreConfig(savedText);
       } catch {
         window.localStorage.removeItem(STORAGE_KEY);
         window.localStorage.removeItem(STORAGE_NAME_KEY);
@@ -81,9 +86,9 @@ function createInitialConfig(): ConfigModel {
   }
 
   try {
-    return parseLuaConfig(sampleConfigText);
+    return parseOreConfig(sampleConfigText);
   } catch {
-    return EMPTY_CONFIG;
+    return cloneOreConfig(EMPTY_CONFIG);
   }
 }
 
@@ -158,7 +163,7 @@ function sortReverseGroups(
 }
 
 export function App() {
-  const [config, setConfig] = useState<ConfigModel>(() => createInitialConfig());
+  const [config, setConfig] = useState<OreConfig>(() => createInitialConfig());
   const [fileName, setFileName] = useState<string>(() => createInitialFileName());
   const [editor, setEditor] = useState<EditorState>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
@@ -174,34 +179,39 @@ export function App() {
   const topbarRef = useRef<HTMLElement | null>(null);
 
   const exportText = useMemo(
-    () => serializeLuaConfig(config, { compact: exportSingleLine }),
+    () => serializeOreConfig(config, { compact: exportSingleLine }),
     [config, exportSingleLine]
   );
+  const roles = useMemo(() => getRoleEntries(config), [config]);
+  const interfaces = useMemo(() => getInterfaceEntries(config), [config]);
+  const processes = useMemo(() => getProcessEntries(config), [config]);
+  const idWhitelist = useMemo(() => getFilterGroups(config, 'idWhitelist'), [config]);
+  const idBlacklist = useMemo(() => getFilterGroups(config, 'idBlacklist'), [config]);
   const availableSteps = useMemo(() => collectAvailableSteps(config), [config]);
-  const reverseGroups = useMemo(() => buildProcessReverse(config.processes), [config.processes]);
-  const interfaceIds = useMemo(() => config.interfaces.map((entry) => entry.id), [config.interfaces]);
-  const roleNames = useMemo(() => config.roles.map((role) => role.name), [config.roles]);
+  const reverseGroups = useMemo(() => buildProcessReverse(config), [config]);
+  const interfaceIds = useMemo(() => interfaces.map((entry) => entry.id), [interfaces]);
+  const roleNames = useMemo(() => roles.map((role) => role.name), [roles]);
   const stats = useMemo(
     () => ({
-      roles: config.roles.length,
-      interfaces: config.interfaces.length,
-      processes: config.processes.length,
-      whitelistIds: config.idWhitelist.reduce((sum, group) => sum + group.ids.length, 0),
-      blacklistIds: config.idBlacklist.reduce((sum, group) => sum + group.ids.length, 0)
+      roles: roles.length,
+      interfaces: interfaces.length,
+      processes: processes.length,
+      whitelistIds: idWhitelist.reduce((sum, group) => sum + group.ids.length, 0),
+      blacklistIds: idBlacklist.reduce((sum, group) => sum + group.ids.length, 0)
     }),
-    [config]
+    [idBlacklist, idWhitelist, interfaces, processes, roles]
   );
 
   const filteredProcesses = useMemo(() => {
     const query = processSearch.trim().toLowerCase();
     if (!query) {
-      return config.processes;
+      return processes;
     }
 
-    return config.processes.filter((process) =>
+    return processes.filter((process) =>
       `${process.mineral} ${process.steps.join(' ')}`.toLowerCase().includes(query)
     );
-  }, [config.processes, processSearch]);
+  }, [processes, processSearch]);
 
   const visibleProcesses = useMemo(
     () => sortProcesses(filteredProcesses, processSortMode, processSortDirection),
@@ -285,7 +295,7 @@ export function App() {
 
   const handleImportText = (text: string, nextFileName: string) => {
     try {
-      const parsed = parseLuaConfig(text);
+      const parsed = parseOreConfig(text);
       setConfig(parsed);
       setFileName(nextFileName || sampleConfigName);
       setEditor(null);
@@ -534,8 +544,8 @@ export function App() {
         onReverseSortModeChange={setReverseSortMode}
         onReverseSortDirectionChange={setReverseSortDirection}
         onReuseProcess={handleReuseProcess}
-        roles={config.roles}
-        interfaces={config.interfaces}
+        roles={roles}
+        interfaces={interfaces}
         roleNames={roleNames}
         onAddRole={openRoleAdd}
         onAddInterface={openInterfaceAdd}
@@ -543,8 +553,8 @@ export function App() {
         onDeleteRole={handleRoleDelete}
         onEditInterface={openInterfaceEdit}
         onDeleteInterface={handleInterfaceDelete}
-        idWhitelist={config.idWhitelist}
-        idBlacklist={config.idBlacklist}
+        idWhitelist={idWhitelist}
+        idBlacklist={idBlacklist}
         onEditWhitelist={openWhitelistEditor}
         onEditBlacklist={openBlacklistEditor}
         exportText={exportText}
@@ -586,7 +596,7 @@ export function App() {
           initialMineral={processEditor.initialMineral}
           initialSteps={processEditor.initialSteps}
           availableSteps={availableSteps}
-          existingProcesses={config.processes}
+          existingProcesses={processes}
           onClose={closeEditor}
           onSave={(next, options) => handleProcessSave(processEditor.originalMineral, next, options)}
         />
@@ -596,7 +606,7 @@ export function App() {
         <ListEditorModal
           open
           title={listEditor.kind === 'idWhitelist' ? '白名单' : '黑名单'}
-          groups={listEditor.kind === 'idWhitelist' ? config.idWhitelist : config.idBlacklist}
+          groups={listEditor.kind === 'idWhitelist' ? idWhitelist : idBlacklist}
           availableRoles={roleNames}
           onClose={closeEditor}
           onSave={(groups) => handleFilterGroupsSave(listEditor.kind, groups)}

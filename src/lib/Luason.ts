@@ -530,7 +530,6 @@ export class LuaSerializer {
   }
 
   private objectToLuaTable(input: {}): LuaTable {
-    console.log("objectToLuaTable", input)
     const table = { fields: [] } as LuaTable
     Object.entries(input).forEach(([key, value]) => {
       table.fields.push({

@@ -10,6 +10,7 @@ export class StringMap {
 
 export class StringListMap {
   [key: string]: string[];
+  static __indexType__ = Array;
 
   *[Symbol.iterator](): Iterator<[string, string[]]> {
     for (const [key, value] of Object.entries(this)) {

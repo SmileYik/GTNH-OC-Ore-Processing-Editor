@@ -1,4 +1,4 @@
-import type { FilterGroup } from '../../lib/luaConfig';
+import type { FilterGroup } from '../../lib/OreConfigManager';
 import { Section, TreeRoot } from './common';
 
 interface FilterListCardProps {

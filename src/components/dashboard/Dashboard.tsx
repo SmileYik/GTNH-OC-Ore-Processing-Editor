@@ -1,4 +1,4 @@
-import type { FilterGroup, InterfaceEntry, MineralProcess, ProcessReverseGroup, RoleEntry } from '../../lib/luaConfig';
+import type { FilterGroup, InterfaceEntry, MineralProcess, ProcessReverseGroup, RoleEntry } from '../../lib/OreConfigManager';
 import { ExportSection } from './ExportSection';
 import { FilterListCard } from './FilterListCard';
 import { InterfaceSection } from './InterfaceSection';

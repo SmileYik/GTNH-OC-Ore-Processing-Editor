@@ -1,5 +1,5 @@
 import { Fragment, type ReactNode } from 'react';
-import type { FilterGroup } from '../../lib/luaConfig';
+import type { FilterGroup } from '../../lib/OreConfigManager';
 
 export function Section({
   title,

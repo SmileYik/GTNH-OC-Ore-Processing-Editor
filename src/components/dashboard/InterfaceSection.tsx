@@ -1,4 +1,4 @@
-import type { InterfaceEntry } from '../../lib/luaConfig';
+import type { InterfaceEntry } from '../../lib/OreConfigManager';
 import { Section } from './common';
 
 interface InterfaceSectionProps {

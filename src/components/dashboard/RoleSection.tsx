@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
-import type { InterfaceEntry, RoleEntry } from '../../lib/luaConfig';
+import type { InterfaceEntry, RoleEntry } from '../../lib/OreConfigManager';
 import { Section } from './common';
 
 interface RoleSectionProps {

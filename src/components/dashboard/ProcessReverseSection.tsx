@@ -1,4 +1,4 @@
-import { formatProcessSignature, type ProcessReverseGroup } from '../../lib/luaConfig';
+import { formatProcessSignature, type ProcessReverseGroup } from '../../lib/OreConfigManager';
 import { MineralTags, Section } from './common';
 import type { ReverseSortMode, SortDirection } from './sortTypes';
 
