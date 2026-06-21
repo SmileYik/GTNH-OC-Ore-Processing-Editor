@@ -1,28 +1,61 @@
+import { useMemo, useState } from 'react';
 import { formatProcessSignature, type ProcessReverseGroup } from '../../lib/OreConfigManager';
 import { MineralTags, Section } from './common';
 import type { ReverseSortMode, SortDirection } from './sortTypes';
 
 interface ProcessReverseSectionProps {
   groups: ProcessReverseGroup[];
-  search: string;
-  sortMode: ReverseSortMode;
-  sortDirection: SortDirection;
-  onSearchChange: (value: string) => void;
-  onSortModeChange: (value: ReverseSortMode) => void;
-  onSortDirectionChange: (value: SortDirection) => void;
   onReuseProcess: (steps: string[]) => void;
 }
 
-export function ProcessReverseSection({
-  groups,
-  search,
-  sortMode,
-  sortDirection,
-  onSearchChange,
-  onSortModeChange,
-  onSortDirectionChange,
-  onReuseProcess
-}: ProcessReverseSectionProps) {
+const COLLATOR = new Intl.Collator('zh-Hans-CN', { numeric: true, sensitivity: 'base' });
+
+export function ProcessReverseSection({ groups, onReuseProcess }: ProcessReverseSectionProps) {
+  const [search, setSearch] = useState('');
+  const [sortMode, setSortMode] = useState<ReverseSortMode>('length');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('default');
+
+  const filteredGroups = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) {
+      return groups;
+    }
+
+    return groups.filter((group) =>
+      `${group.signature} ${group.minerals.join(' ')}`.toLowerCase().includes(query)
+    );
+  }, [groups, search]);
+
+  const visibleGroups = useMemo(() => {
+    if (sortDirection === 'default') {
+      return [...filteredGroups];
+    }
+
+    return [...filteredGroups].sort((left, right) => {
+      let result = 0;
+
+      if (sortMode === 'count') {
+        result = left.minerals.length - right.minerals.length;
+        if (result === 0) {
+          result = COLLATOR.compare(left.signature, right.signature);
+        }
+        if (result === 0) {
+          result = COLLATOR.compare(left.minerals.join(' / '), right.minerals.join(' / '));
+        }
+      } else {
+        result = left.steps.length - right.steps.length;
+        if (result === 0) {
+          result = COLLATOR.compare(left.signature, right.signature);
+        }
+        if (result === 0) {
+          result = COLLATOR.compare(left.minerals.join(' / '), right.minerals.join(' / '));
+        }
+      }
+
+      return sortDirection === 'asc' ? result : -result;
+    });
+  }, [filteredGroups, sortDirection, sortMode]);
+
   const nextSortDirection: SortDirection =
     sortDirection === 'default' ? 'asc' : sortDirection === 'asc' ? 'desc' : 'default';
   const sortDirectionIcon = sortDirection === 'default' ? '\u2195' : sortDirection === 'asc' ? '\u2191' : '\u2193';
@@ -41,14 +74,14 @@ export function ProcessReverseSection({
           <input
             className="input input--search"
             value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
+            onChange={(event) => setSearch(event.target.value)}
             placeholder="搜索流程 / 矿物"
           />
           <div className="sort-controls">
             <select
               className="input input--compact input--sort"
               value={sortMode}
-              onChange={(event) => onSortModeChange(event.target.value as ReverseSortMode)}
+              onChange={(event) => setSortMode(event.target.value as ReverseSortMode)}
             >
               <option value="length">按工序长度</option>
               <option value="count">按矿物数量</option>
@@ -58,7 +91,7 @@ export function ProcessReverseSection({
               className="button button--tonal button--compact sort-direction-button"
               aria-label={`${sortDirectionLabel}，点击切换为${nextSortDirectionLabel}`}
               title={`${sortDirectionLabel}，点击切换为${nextSortDirectionLabel}`}
-              onClick={() => onSortDirectionChange(nextSortDirection)}
+              onClick={() => setSortDirection(nextSortDirection)}
             >
               <span aria-hidden="true">{sortDirectionIcon}</span>
             </button>
@@ -67,10 +100,10 @@ export function ProcessReverseSection({
       }
     >
       <div className="scroll-stack">
-        {groups.length === 0 ? (
+        {visibleGroups.length === 0 ? (
           <div className="empty-state">没有匹配的反查结果。</div>
         ) : (
-          groups.map((group) => (
+          visibleGroups.map((group) => (
             <article className="record-card record-card--compact" key={group.signature || 'empty'}>
               <div className="record-card__header">
                 <div>

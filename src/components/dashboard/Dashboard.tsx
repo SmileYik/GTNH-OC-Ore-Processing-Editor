@@ -6,26 +6,13 @@ import { InterfaceSection } from './InterfaceSection';
 import { MineralProcessSection } from './MineralProcessSection';
 import { ProcessReverseSection } from './ProcessReverseSection';
 import { RoleSection } from './RoleSection';
-import type { ProcessSortMode, ReverseSortMode, SortDirection } from './sortTypes';
 
 interface DashboardProps {
-  processes: MineralProcess[];
-  processSearch: string;
-  processSortMode: ProcessSortMode;
-  processSortDirection: SortDirection;
-  onProcessSearchChange: (value: string) => void;
-  onProcessSortModeChange: (value: ProcessSortMode) => void;
-  onProcessSortDirectionChange: (value: SortDirection) => void;
+  processes: MineralProcess[]; 
   onAddProcess: () => void;
   onEditProcess: (process: MineralProcess) => void;
   onDeleteProcess: (mineral: string) => void;
   reverseGroups: ProcessReverseGroup[];
-  reverseSearch: string;
-  reverseSortMode: ReverseSortMode;
-  reverseSortDirection: SortDirection;
-  onReverseSearchChange: (value: string) => void;
-  onReverseSortModeChange: (value: ReverseSortMode) => void;
-  onReverseSortDirectionChange: (value: SortDirection) => void;
   onReuseProcess: (steps: string[]) => void;
   roles: RoleEntry[];
   interfaces: InterfaceEntry[];
@@ -46,22 +33,10 @@ interface DashboardProps {
 
 export function Dashboard({
   processes,
-  processSearch,
-  processSortMode,
-  processSortDirection,
-  onProcessSearchChange,
-  onProcessSortModeChange,
-  onProcessSortDirectionChange,
   onAddProcess,
   onEditProcess,
   onDeleteProcess,
   reverseGroups,
-  reverseSearch,
-  reverseSortMode,
-  reverseSortDirection,
-  onReverseSearchChange,
-  onReverseSortModeChange,
-  onReverseSortDirectionChange,
   onReuseProcess,
   roles,
   interfaces,
@@ -83,12 +58,6 @@ export function Dashboard({
     <main className="dashboard">
       <MineralProcessSection
         processes={processes}
-        search={processSearch}
-        sortMode={processSortMode}
-        sortDirection={processSortDirection}
-        onSearchChange={onProcessSearchChange}
-        onSortModeChange={onProcessSortModeChange}
-        onSortDirectionChange={onProcessSortDirectionChange}
         onAddProcess={onAddProcess}
         onEditProcess={onEditProcess}
         onDeleteProcess={onDeleteProcess}
@@ -96,12 +65,6 @@ export function Dashboard({
 
       <ProcessReverseSection
         groups={reverseGroups}
-        search={reverseSearch}
-        sortMode={reverseSortMode}
-        sortDirection={reverseSortDirection}
-        onSearchChange={onReverseSearchChange}
-        onSortModeChange={onReverseSortModeChange}
-        onSortDirectionChange={onReverseSortDirectionChange}
         onReuseProcess={onReuseProcess}
       />
 

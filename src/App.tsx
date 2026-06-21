@@ -17,7 +17,6 @@ import {
   type FilterGroup,
   type InterfaceEntry,
   type MineralProcess,
-  type ProcessReverseGroup,
   type RoleEntry,
   upsertInterfaceEntry,
   upsertProcessEntry,
@@ -30,11 +29,9 @@ import { InterfaceEditorModal, ListEditorModal, RoleEditorModal } from './compon
 import { ProcessBuilderModal } from './components/ProcessBuilderModal';
 import { Notice, type NoticeMessage, useAutoDismissNotice } from './components/Notice';
 import { Dashboard } from './components/dashboard/Dashboard';
-import type { ProcessSortMode, ReverseSortMode, SortDirection } from './components/dashboard/sortTypes';
 
 const STORAGE_KEY = 'oc-ore-processing-editor.config.v1';
 const STORAGE_NAME_KEY = 'oc-ore-processing-editor.config-name.v1';
-const COLLATOR = new Intl.Collator('zh-Hans-CN', { numeric: true, sensitivity: 'base' });
 
 type EditorState =
   | {
@@ -94,80 +91,12 @@ function createInitialFileName(): string {
   return sampleConfigName;
 }
 
-function sortProcesses(
-  processes: MineralProcess[],
-  mode: ProcessSortMode,
-  direction: SortDirection
-): MineralProcess[] {
-  if (direction === 'default') {
-    return [...processes];
-  }
-
-  return [...processes].sort((left, right) => {
-    let result = 0;
-
-    if (mode === 'name') {
-      result = COLLATOR.compare(left.mineral, right.mineral);
-      if (result === 0) {
-        result = left.steps.length - right.steps.length;
-      }
-    } else {
-      result = left.steps.length - right.steps.length;
-      if (result === 0) {
-        result = COLLATOR.compare(left.mineral, right.mineral);
-      }
-    }
-
-    return direction === 'asc' ? result : -result;
-  });
-}
-
-function sortReverseGroups(
-  groups: ProcessReverseGroup[],
-  mode: ReverseSortMode,
-  direction: SortDirection
-): ProcessReverseGroup[] {
-  if (direction === 'default') {
-    return [...groups];
-  }
-
-  return [...groups].sort((left, right) => {
-    let result = 0;
-
-    if (mode === 'count') {
-      result = left.minerals.length - right.minerals.length;
-      if (result === 0) {
-        result = COLLATOR.compare(left.signature, right.signature);
-      }
-      if (result === 0) {
-        result = COLLATOR.compare(left.minerals.join(' / '), right.minerals.join(' / '));
-      }
-    } else {
-      result = left.steps.length - right.steps.length;
-      if (result === 0) {
-        result = COLLATOR.compare(left.signature, right.signature);
-      }
-      if (result === 0) {
-        result = COLLATOR.compare(left.minerals.join(' / '), right.minerals.join(' / '));
-      }
-    }
-
-    return direction === 'asc' ? result : -result;
-  });
-}
-
 export function App() {
   const [config, setConfig] = useState<OreConfig>(() => createInitialConfig());
   const [fileName, setFileName] = useState<string>(() => createInitialFileName());
   const [editor, setEditor] = useState<EditorState>(null);
   const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const [topbarHeight, setTopbarHeight] = useState(0);
-  const [processSearch, setProcessSearch] = useState('');
-  const [reverseSearch, setReverseSearch] = useState('');
-  const [processSortMode, setProcessSortMode] = useState<ProcessSortMode>('length');
-  const [processSortDirection, setProcessSortDirection] = useState<SortDirection>('default');
-  const [reverseSortMode, setReverseSortMode] = useState<ReverseSortMode>('length');
-  const [reverseSortDirection, setReverseSortDirection] = useState<SortDirection>('default');
   const [importConfigOpen, setImportConfigOpen] = useState(false);
   const topbarRef = useRef<HTMLElement | null>(null);
   const showNotice = (text: string, tone: NoticeMessage['tone'] = 'info') => {
@@ -191,38 +120,6 @@ export function App() {
       blacklistIds: idBlacklist.reduce((sum, group) => sum + group.ids.length, 0)
     }),
     [idBlacklist, idWhitelist, interfaces, processes, roles]
-  );
-
-  const filteredProcesses = useMemo(() => {
-    const query = processSearch.trim().toLowerCase();
-    if (!query) {
-      return processes;
-    }
-
-    return processes.filter((process) =>
-      `${process.mineral} ${process.steps.join(' ')}`.toLowerCase().includes(query)
-    );
-  }, [processes, processSearch]);
-
-  const visibleProcesses = useMemo(
-    () => sortProcesses(filteredProcesses, processSortMode, processSortDirection),
-    [filteredProcesses, processSortDirection, processSortMode]
-  );
-
-  const filteredReverseGroups = useMemo(() => {
-    const query = reverseSearch.trim().toLowerCase();
-    if (!query) {
-      return reverseGroups;
-    }
-
-    return reverseGroups.filter((group) =>
-      `${group.signature} ${group.minerals.join(' ')}`.toLowerCase().includes(query)
-    );
-  }, [reverseGroups, reverseSearch]);
-
-  const visibleReverseGroups = useMemo(
-    () => sortReverseGroups(filteredReverseGroups, reverseSortMode, reverseSortDirection),
-    [filteredReverseGroups, reverseSortDirection, reverseSortMode]
   );
 
   useEffect(() => {
@@ -478,23 +375,11 @@ export function App() {
       {notice ? <Notice tone={notice.tone} floating>{notice.text}</Notice> : null}
 
       <Dashboard
-        processes={visibleProcesses}
-        processSearch={processSearch}
-        processSortMode={processSortMode}
-        processSortDirection={processSortDirection}
-        onProcessSearchChange={setProcessSearch}
-        onProcessSortModeChange={setProcessSortMode}
-        onProcessSortDirectionChange={setProcessSortDirection}
+        processes={processes}
         onAddProcess={openProcessAdd}
         onEditProcess={openProcessEdit}
         onDeleteProcess={handleProcessDelete}
-        reverseGroups={visibleReverseGroups}
-        reverseSearch={reverseSearch}
-        reverseSortMode={reverseSortMode}
-        reverseSortDirection={reverseSortDirection}
-        onReverseSearchChange={setReverseSearch}
-        onReverseSortModeChange={setReverseSortMode}
-        onReverseSortDirectionChange={setReverseSortDirection}
+        reverseGroups={reverseGroups}
         onReuseProcess={handleReuseProcess}
         roles={roles}
         interfaces={interfaces}

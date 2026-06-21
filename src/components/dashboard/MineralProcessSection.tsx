@@ -1,32 +1,62 @@
+import { useMemo, useState } from 'react';
 import type { MineralProcess } from '../../lib/OreConfigManager';
 import { Section, StepPath } from './common';
 import type { ProcessSortMode, SortDirection } from './sortTypes';
 
 interface MineralProcessSectionProps {
   processes: MineralProcess[];
-  search: string;
-  sortMode: ProcessSortMode;
-  sortDirection: SortDirection;
-  onSearchChange: (value: string) => void;
-  onSortModeChange: (value: ProcessSortMode) => void;
-  onSortDirectionChange: (value: SortDirection) => void;
   onAddProcess: () => void;
   onEditProcess: (process: MineralProcess) => void;
   onDeleteProcess: (mineral: string) => void;
 }
 
+const COLLATOR = new Intl.Collator('zh-Hans-CN', { numeric: true, sensitivity: 'base' });
+
 export function MineralProcessSection({
   processes,
-  search,
-  sortMode,
-  sortDirection,
-  onSearchChange,
-  onSortModeChange,
-  onSortDirectionChange,
   onAddProcess,
   onEditProcess,
   onDeleteProcess
 }: MineralProcessSectionProps) {
+  const [search, setSearch] = useState('');
+  const [sortMode, setSortMode] = useState<ProcessSortMode>('length');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('default');
+
+  const filteredProcesses = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) {
+      return processes;
+    }
+
+    return processes.filter((process) =>
+      `${process.mineral} ${process.steps.join(' ')}`.toLowerCase().includes(query)
+    );
+  }, [processes, search]);
+
+  const visibleProcesses = useMemo(() => {
+    if (sortDirection === 'default') {
+      return [...filteredProcesses];
+    }
+
+    return [...filteredProcesses].sort((left, right) => {
+      let result = 0;
+
+      if (sortMode === 'name') {
+        result = COLLATOR.compare(left.mineral, right.mineral);
+        if (result === 0) {
+          result = left.steps.length - right.steps.length;
+        }
+      } else {
+        result = left.steps.length - right.steps.length;
+        if (result === 0) {
+          result = COLLATOR.compare(left.mineral, right.mineral);
+        }
+      }
+
+      return sortDirection === 'asc' ? result : -result;
+    });
+  }, [filteredProcesses, sortDirection, sortMode]);
+
   const nextSortDirection: SortDirection =
     sortDirection === 'default' ? 'asc' : sortDirection === 'asc' ? 'desc' : 'default';
   const sortDirectionIcon = sortDirection === 'default' ? '\u2195' : sortDirection === 'asc' ? '\u2191' : '\u2193';
@@ -45,14 +75,14 @@ export function MineralProcessSection({
           <input
             className="input input--search"
             value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
+            onChange={(event) => setSearch(event.target.value)}
             placeholder="搜索矿物 / 步骤"
           />
           <div className="sort-controls">
             <select
               className="input input--compact input--sort"
               value={sortMode}
-              onChange={(event) => onSortModeChange(event.target.value as ProcessSortMode)}
+              onChange={(event) => setSortMode(event.target.value as ProcessSortMode)}
             >
               <option value="length">按工序长度</option>
               <option value="name">按矿物名称</option>
@@ -62,7 +92,7 @@ export function MineralProcessSection({
               className="button button--tonal button--compact sort-direction-button"
               aria-label={`${sortDirectionLabel}，点击切换为${nextSortDirectionLabel}`}
               title={`${sortDirectionLabel}，点击切换为${nextSortDirectionLabel}`}
-              onClick={() => onSortDirectionChange(nextSortDirection)}
+              onClick={() => setSortDirection(nextSortDirection)}
             >
               <span aria-hidden="true">{sortDirectionIcon}</span>
             </button>
@@ -74,10 +104,10 @@ export function MineralProcessSection({
       }
     >
       <div className="scroll-stack">
-        {processes.length === 0 ? (
+        {visibleProcesses.length === 0 ? (
           <div className="empty-state">没有匹配的矿物流程。</div>
         ) : (
-          processes.map((process) => (
+          visibleProcesses.map((process) => (
             <article className="record-card" key={process.mineral}>
               <div className="record-card__header">
                 <div>
