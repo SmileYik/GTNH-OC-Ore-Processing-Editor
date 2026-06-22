@@ -1,4 +1,4 @@
-import sampleConfigText from './setting.new?raw';
+import sampleConfigText from './ore.config?raw';
 
-export const sampleConfigName = 'setting.new';
+export const sampleConfigName = 'ore.config';
 export { sampleConfigText };
