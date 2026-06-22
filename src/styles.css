@@ -765,6 +765,7 @@ svg {
 .tree-item {
   display: inline-flex;
   align-items: center;
+  gap: 8px;
   max-width: 100%;
   padding: 7px 10px;
   border-radius: 999px;
@@ -775,6 +776,41 @@ svg {
 
 .tree-item--readonly {
   pointer-events: none;
+}
+
+.tree-item--disabled {
+  opacity: 0.68;
+}
+
+.tree-item__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tree-item__status {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.76);
+  color: var(--text-1);
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.tree-item__status--on {
+  background: rgba(15, 118, 110, 0.12);
+  color: var(--primary-strong);
+}
+
+.tree-item__status--off {
+  background: rgba(182, 59, 47, 0.12);
+  color: var(--danger);
+}
+
+.rule-toggle {
+  margin-bottom: 0;
 }
 
 .tree-group__empty {

@@ -16,9 +16,15 @@ export interface MineralProcess {
   steps: string[];
 }
 
+export interface FilterRuleEntry {
+  rule: string;
+  enable: boolean;
+  comments: string;
+}
+
 export interface FilterGroup {
   role: string;
-  ids: string[];
+  rules: FilterRuleEntry[];
 }
 
 export interface ProcessReverseGroup {
@@ -84,13 +90,6 @@ function cloneStringListMap(input: StringListMap): StringListMap {
   }
 
   return next;
-}
-
-function createEnabledRuleMeta(): RuleMeta {
-  const meta = new RuleMeta();
-  meta.enable = true;
-  meta.comments = '';
-  return meta;
 }
 
 export function cloneOreConfig(config: OreConfig): OreConfig {
@@ -195,12 +194,14 @@ function removeRoleReferences(config: OreConfig, name: string): void {
   rebuildProcessReverse(config);
 }
 
-function buildOreRuleGroup(existing: OreRule | undefined, ids: string[]): OreRule {
+function buildOreRuleGroup(rules: FilterRuleEntry[]): OreRule {
   const next = new OreRule();
 
-  for (const id of ids) {
-    const current = existing?.[id];
-    next[id] = current !== undefined ? cloneRuleValue(current as boolean | RuleMeta) : createEnabledRuleMeta();
+  for (const rule of rules) {
+    const meta = new RuleMeta();
+    meta.enable = rule.enable;
+    meta.comments = rule.comments;
+    next[rule.rule] = meta;
   }
 
   return next;
@@ -458,17 +459,52 @@ export function deleteProcessEntry(config: OreConfig, mineral: string): OreConfi
   return next;
 }
 
+function cloneFilterRuleEntry(entry: FilterRuleEntry): FilterRuleEntry {
+  return {
+    rule: entry.rule,
+    enable: entry.enable,
+    comments: entry.comments
+  };
+}
+
+export function formatFilterRuleLabel(rule: FilterRuleEntry): string {
+  const comments = rule.comments.trim();
+  return comments || rule.rule;
+}
+
 export function cloneFilterGroups(groups: FilterGroup[]): FilterGroup[] {
   return groups.map((group) => ({
     role: group.role,
-    ids: [...group.ids]
+    rules: group.rules.map((rule) => cloneFilterRuleEntry(rule))
   }));
 }
 
 export function collectFilterGroups(rules: OreRules): FilterGroup[] {
   return Object.entries(rules).map(([role, rule]) => ({
     role,
-    ids: Object.keys(rule)
+    rules: Object.entries(rule).map(([ruleText, value]) => {
+      if (value instanceof RuleMeta) {
+        return {
+          rule: ruleText,
+          enable: value.enable,
+          comments: value.comments
+        };
+      }
+
+      if (typeof value === 'boolean') {
+        return {
+          rule: ruleText,
+          enable: value,
+          comments: ''
+        };
+      }
+
+      return {
+        rule: ruleText,
+        enable: true,
+        comments: ''
+      };
+    })
   }));
 }
 
@@ -478,11 +514,10 @@ export function setFilterGroups(
   groups: FilterGroup[]
 ): OreConfig {
   const next = cloneOreConfig(config);
-  const current = next[key];
   const updated = new OreRules();
 
   for (const group of groups) {
-    updated[group.role] = buildOreRuleGroup(current[group.role] as OreRule | undefined, group.ids);
+    updated[group.role] = buildOreRuleGroup(group.rules);
   }
 
   next[key] = updated;

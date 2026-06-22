@@ -85,8 +85,18 @@ export function Dashboard({
         onDeleteInterface={onDeleteInterface}
       />
 
-      <FilterListCard title="白名单" kindLabel="给指定职责的机器设置物品白名单, 格式为: 物品内部名称#物品损伤值" groups={idWhitelist} onEdit={onEditWhitelist} />
-      <FilterListCard title="黑名单" kindLabel="给指定职责的机器设置物品黑名单, 格式为: 物品内部名称#物品损伤值" groups={idBlacklist} onEdit={onEditBlacklist} />
+      <FilterListCard
+        title="白名单"
+        kindLabel="按职责管理规则，支持启用状态和注释，显示时优先展示注释。"
+        groups={idWhitelist}
+        onEdit={onEditWhitelist}
+      />
+      <FilterListCard
+        title="黑名单"
+        kindLabel="按职责管理规则，支持启用状态和注释，显示时优先展示注释。"
+        groups={idBlacklist}
+        onEdit={onEditBlacklist}
+      />
 
       <ExportSection
         config={config}

@@ -25,39 +25,18 @@ import {
 import { type OreConfig } from './lib/OreConfig';
 import { sampleConfigName, sampleConfigText } from './sampleConfig';
 import { ImportConfigModal } from './components/ImportConfigModal';
-import { InterfaceEditorModal, ListEditorModal, RoleEditorModal } from './components/Editors';
+import {
+  InterfaceEditorModal,
+  ListEditorModal,
+  RoleEditorModal,
+  type EditorState
+} from './components/editors';
 import { ProcessBuilderModal } from './components/ProcessBuilderModal';
 import { Notice, type NoticeMessage, useAutoDismissNotice } from './components/Notice';
 import { Dashboard } from './components/dashboard/Dashboard';
 
 const STORAGE_KEY = 'oc-ore-processing-editor.config.v1';
 const STORAGE_NAME_KEY = 'oc-ore-processing-editor.config-name.v1';
-
-type EditorState =
-  | {
-      type: 'role';
-      mode: 'add' | 'edit';
-      originalName: string | null;
-      initial: RoleEntry;
-    }
-  | {
-      type: 'interface';
-      mode: 'add' | 'edit';
-      originalId: string | null;
-      initial: InterfaceEntry;
-    }
-  | {
-      type: 'process';
-      mode: 'add' | 'edit';
-      originalMineral: string | null;
-      initialMineral: string;
-      initialSteps: string[];
-    }
-  | {
-      type: 'list';
-      kind: 'idWhitelist' | 'idBlacklist';
-    }
-  | null;
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -116,8 +95,8 @@ export function App() {
       roles: roles.length,
       interfaces: interfaces.length,
       processes: processes.length,
-      whitelistIds: idWhitelist.reduce((sum, group) => sum + group.ids.length, 0),
-      blacklistIds: idBlacklist.reduce((sum, group) => sum + group.ids.length, 0)
+      whitelistRules: idWhitelist.reduce((sum, group) => sum + group.rules.length, 0),
+      blacklistRules: idBlacklist.reduce((sum, group) => sum + group.rules.length, 0)
     }),
     [idBlacklist, idWhitelist, interfaces, processes, roles]
   );
@@ -175,7 +154,7 @@ export function App() {
       const parsed = parseOreConfig(text);
       setConfig(parsed);
       setFileName(nextFileName || sampleConfigName);
-      setEditor(null);
+      closeEditor();
       setImportConfigOpen(false);
       showNotice(`已导入 ${nextFileName || sampleConfigName}`, 'success');
     } catch (error) {
@@ -243,8 +222,12 @@ export function App() {
     });
   };
 
-  const openWhitelistEditor = () => setEditor({ type: 'list', kind: 'idWhitelist' });
-  const openBlacklistEditor = () => setEditor({ type: 'list', kind: 'idBlacklist' });
+  const openWhitelistEditor = () => {
+    setEditor({ type: 'list', kind: 'idWhitelist' });
+  };
+  const openBlacklistEditor = () => {
+    setEditor({ type: 'list', kind: 'idBlacklist' });
+  };
 
   const handleRoleSave = (originalName: string | null, next: RoleEntry) => {
     try {
@@ -339,11 +322,6 @@ export function App() {
     }
   };
 
-  const roleEditor = editor?.type === 'role' ? editor : null;
-  const interfaceEditor = editor?.type === 'interface' ? editor : null;
-  const processEditor = editor?.type === 'process' ? editor : null;
-  const listEditor = editor?.type === 'list' ? editor : null;
-
   return (
     <div className="app-shell" style={{ '--topbar-height': `${topbarHeight}px` } as CSSProperties}>
       <header className="topbar" ref={topbarRef}>
@@ -398,50 +376,50 @@ export function App() {
         fileName={fileName}
       />
 
-      {roleEditor ? (
+      {editor?.type === "role" ? (
         <RoleEditorModal
           open
-          mode={roleEditor.mode}
-          initial={roleEditor.initial}
+          mode={editor.mode}
+          initial={editor.initial}
           existingNames={roleNames}
           onClose={closeEditor}
-          onSave={(next) => handleRoleSave(roleEditor.originalName, next)}
+          onSave={(next) => handleRoleSave(editor.originalName, next)}
         />
       ) : null}
 
-      {interfaceEditor ? (
+      {editor?.type === "interface" ? (
         <InterfaceEditorModal
           open
-          mode={interfaceEditor.mode}
-          initial={interfaceEditor.initial}
+          mode={editor.mode}
+          initial={editor.initial}
           availableRoles={roleNames}
           existingIds={interfaceIds}
           onClose={closeEditor}
-          onSave={(next) => handleInterfaceSave(interfaceEditor.originalId, next)}
+          onSave={(next) => handleInterfaceSave(editor.originalId, next)}
         />
       ) : null}
 
-      {processEditor ? (
+      {editor?.type === "process" ? (
         <ProcessBuilderModal
           open
-          mode={processEditor.mode}
-          initialMineral={processEditor.initialMineral}
-          initialSteps={processEditor.initialSteps}
+          mode={editor.mode}
+          initialMineral={editor.initialMineral}
+          initialSteps={editor.initialSteps}
           availableSteps={availableSteps}
           existingProcesses={processes}
           onClose={closeEditor}
-          onSave={(next, options) => handleProcessSave(processEditor.originalMineral, next, options)}
+          onSave={(next, options) => handleProcessSave(editor.originalMineral, next, options)}
         />
       ) : null}
 
-      {listEditor ? (
+      {editor?.type === "list" ? (
         <ListEditorModal
           open
-          title={listEditor.kind === 'idWhitelist' ? '白名单' : '黑名单'}
-          groups={listEditor.kind === 'idWhitelist' ? idWhitelist : idBlacklist}
+          title={editor.kind === 'idWhitelist' ? '白名单' : '黑名单'}
+          groups={editor.kind === 'idWhitelist' ? idWhitelist : idBlacklist}
           availableRoles={roleNames}
           onClose={closeEditor}
-          onSave={(groups) => handleFilterGroupsSave(listEditor.kind, groups)}
+          onSave={(groups) => handleFilterGroupsSave(editor.kind, groups)}
         />
       ) : null}
 

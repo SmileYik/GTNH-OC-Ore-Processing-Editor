@@ -1,5 +1,5 @@
 import { Fragment, type ReactNode } from 'react';
-import type { FilterGroup } from '../../lib/OreConfigManager';
+import { formatFilterRuleLabel, type FilterGroup } from '../../lib/OreConfigManager';
 
 export function Section({
   title,
@@ -72,15 +72,25 @@ export function TreeRoot({ title, groups }: { title: string; groups: FilterGroup
           <div className="tree-group tree-group--readonly" key={`${group.role}-${title}`}>
             <div className="tree-group__header tree-group__header--readonly">
               <span>{group.role}</span>
-              <span className="tree-group__count">{group.ids.length}</span>
+              <span className="tree-group__count">{group.rules.length}</span>
             </div>
             <div className="tree-group__items">
-              {group.ids.length === 0 ? (
+              {group.rules.length === 0 ? (
                 <span className="tree-group__empty">空</span>
               ) : (
-                group.ids.map((id, index) => (
-                  <span className="tree-item tree-item--readonly" key={`${group.role}-${id}-${index}`}>
-                    {id}
+                group.rules.map((rule, index) => (
+                  <span
+                    className={`tree-item tree-item--readonly${rule.enable ? '' : ' tree-item--disabled'}`}
+                    key={`${group.role}-${rule.rule}-${index}`}
+                    title={`规则: ${rule.rule}${rule.comments.trim() ? `\n注释: ${rule.comments.trim()}` : ''}\n状态: ${rule.enable ? '启用' : '停用'}`}
+                  >
+                    <span className="tree-item__label">{formatFilterRuleLabel(rule)}</span>
+                    <span
+                      className={`tree-item__status${rule.enable ? ' tree-item__status--on' : ' tree-item__status--off'}`}
+                      aria-label={rule.enable ? '已启用' : '已停用'}
+                    >
+                      {rule.enable ? '启用' : '停用'}
+                    </span>
                   </span>
                 ))
               )}

@@ -34,6 +34,14 @@ interface ProcessBuilderModalProps {
   onSave: (next: MineralProcess, options?: ProcessSaveOptions) => void;
 }
 
+export interface ProcessBuilderState {
+  type: 'process';
+  mode: 'add' | 'edit';
+  originalMineral: string | null;
+  initialMineral: string;
+  initialSteps: string[];
+}
+
 function createNode(step: string): FlowNode {
   return {
     id: `node_${Math.random().toString(36).slice(2, 10)}`,
