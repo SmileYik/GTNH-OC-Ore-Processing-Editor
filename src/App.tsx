@@ -27,6 +27,7 @@ import { sampleConfigName, sampleConfigText } from './sampleConfig';
 import { ImportConfigModal } from './components/ImportConfigModal';
 import {
   InterfaceEditorModal,
+  LogicalRuleEditorModal,
   ListEditorModal,
   RoleEditorModal,
   type EditorState
@@ -86,6 +87,7 @@ export function App() {
   const processes = useMemo(() => getProcessEntries(config), [config]);
   const idWhitelist = useMemo(() => getFilterGroups(config, 'idWhitelist'), [config]);
   const idBlacklist = useMemo(() => getFilterGroups(config, 'idBlacklist'), [config]);
+  const logicalRules = useMemo(() => getFilterGroups(config, 'logicalRules'), [config]);
   const availableSteps = useMemo(() => collectAvailableSteps(config), [config]);
   const reverseGroups = useMemo(() => buildProcessReverse(config), [config]);
   const interfaceIds = useMemo(() => interfaces.map((entry) => entry.id), [interfaces]);
@@ -228,6 +230,9 @@ export function App() {
   const openBlacklistEditor = () => {
     setEditor({ type: 'list', kind: 'idBlacklist' });
   };
+  const openLogicalRulesEditor = () => {
+    setEditor({ type: 'logicalRules' });
+  };
 
   const handleRoleSave = (originalName: string | null, next: RoleEntry) => {
     try {
@@ -312,11 +317,19 @@ export function App() {
     });
   };
 
-  const handleFilterGroupsSave = (kind: 'idWhitelist' | 'idBlacklist', groups: FilterGroup[]) => {
+  const handleFilterGroupsSave = (
+    kind: 'idWhitelist' | 'idBlacklist' | 'logicalRules',
+    groups: FilterGroup[]
+  ) => {
+    
     try {
       setConfig(setFilterGroups(config, kind, groups));
       closeEditor();
-      showNotice(`${kind === 'idWhitelist' ? '白名单' : '黑名单'} 已保存`, 'success');
+      showNotice(`${{
+        idWhitelist: "白名单",
+        idBlacklist: "黑名单",
+        logicalRules: "逻辑规则"
+      }[kind]} 已保存`, 'success');
     } catch (error) {
       showNotice(getErrorMessage(error), 'error');
     }
@@ -370,8 +383,10 @@ export function App() {
         onDeleteInterface={handleInterfaceDelete}
         idWhitelist={idWhitelist}
         idBlacklist={idBlacklist}
+        logicalRules={logicalRules}
         onEditWhitelist={openWhitelistEditor}
         onEditBlacklist={openBlacklistEditor}
+        onEditLogicalRules={openLogicalRulesEditor}
         config={config}
         fileName={fileName}
       />
@@ -420,6 +435,16 @@ export function App() {
           availableRoles={roleNames}
           onClose={closeEditor}
           onSave={(groups) => handleFilterGroupsSave(editor.kind, groups)}
+        />
+      ) : null}
+
+      {editor?.type === 'logicalRules' ? (
+        <LogicalRuleEditorModal
+          open
+          groups={logicalRules}
+          availableRoles={roleNames}
+          onClose={closeEditor}
+          onSave={(groups) => handleFilterGroupsSave('logicalRules', groups)}
         />
       ) : null}
 

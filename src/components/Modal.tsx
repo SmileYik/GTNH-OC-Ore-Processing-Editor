@@ -2,19 +2,86 @@ import { createPortal } from 'react-dom';
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 
+let modalScrollLockCount = 0;
+let previousBodyOverflow = '';
+let previousBodyPaddingRight = '';
+let previousHtmlOverflow = '';
+
+function lockDocumentScroll() {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  if (modalScrollLockCount === 0) {
+    const { body, documentElement } = document;
+    previousBodyOverflow = body.style.overflow;
+    previousBodyPaddingRight = body.style.paddingRight;
+    previousHtmlOverflow = documentElement.style.overflow;
+
+    const scrollbarWidth = window.innerWidth - documentElement.clientWidth;
+    if (scrollbarWidth > 0) {
+      const currentPaddingRight = Number.parseFloat(window.getComputedStyle(body).paddingRight || '0');
+      body.style.paddingRight = `${currentPaddingRight + scrollbarWidth}px`;
+    }
+
+    body.style.overflow = 'hidden';
+    documentElement.style.overflow = 'hidden';
+  }
+
+  modalScrollLockCount += 1;
+}
+
+function unlockDocumentScroll() {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  modalScrollLockCount = Math.max(0, modalScrollLockCount - 1);
+
+  if (modalScrollLockCount !== 0) {
+    return;
+  }
+
+  const { body, documentElement } = document;
+  body.style.overflow = previousBodyOverflow;
+  body.style.paddingRight = previousBodyPaddingRight;
+  documentElement.style.overflow = previousHtmlOverflow;
+}
+
 interface ModalProps {
   open: boolean;
   title: string;
   subtitle?: string;
   wide?: boolean;
+  sheetClassName?: string;
+  closeOnEscape?: boolean;
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
 }
 
-export function Modal({ open, title, subtitle, wide, onClose, children, footer }: ModalProps) {
+export function Modal({
+  open,
+  title,
+  subtitle,
+  wide,
+  sheetClassName,
+  closeOnEscape = true,
+  onClose,
+  children,
+  footer
+}: ModalProps) {
   useEffect(() => {
     if (!open) {
+      return undefined;
+    }
+
+    lockDocumentScroll();
+    return () => unlockDocumentScroll();
+  }, [open]);
+
+  useEffect(() => {
+    if (!open || !closeOnEscape) {
       return undefined;
     }
 
@@ -27,7 +94,7 @@ export function Modal({ open, title, subtitle, wide, onClose, children, footer }
     window.addEventListener('keydown', handleKeyDown);
 
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, onClose]);
+  }, [open, closeOnEscape, onClose]);
 
   if (!open) {
     return null;
@@ -36,7 +103,7 @@ export function Modal({ open, title, subtitle, wide, onClose, children, footer }
   return createPortal(
     <div className="modal-backdrop" role="presentation" onClick={onClose}>
       <div
-        className={`modal-sheet${wide ? ' modal-sheet--wide' : ''}`}
+        className={`modal-sheet${wide ? ' modal-sheet--wide' : ''}${sheetClassName ? ` ${sheetClassName}` : ''}`}
         role="dialog"
         aria-modal="true"
         aria-label={title}

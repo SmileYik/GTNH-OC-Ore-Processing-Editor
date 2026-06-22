@@ -254,7 +254,10 @@ export function getProcessEntries(config: OreConfig): MineralProcess[] {
   }));
 }
 
-export function getFilterGroups(config: OreConfig, key: 'idWhitelist' | 'idBlacklist'): FilterGroup[] {
+export function getFilterGroups(
+  config: OreConfig,
+  key: 'idWhitelist' | 'idBlacklist' | 'logicalRules'
+): FilterGroup[] {
   return collectFilterGroups(config[key]);
 }
 
@@ -510,7 +513,7 @@ export function collectFilterGroups(rules: OreRules): FilterGroup[] {
 
 export function setFilterGroups(
   config: OreConfig,
-  key: 'idWhitelist' | 'idBlacklist',
+  key: 'idWhitelist' | 'idBlacklist' | 'logicalRules',
   groups: FilterGroup[]
 ): OreConfig {
   const next = cloneOreConfig(config);

@@ -25,8 +25,10 @@ interface DashboardProps {
   onDeleteInterface: (id: string) => void;
   idWhitelist: FilterGroup[];
   idBlacklist: FilterGroup[];
+  logicalRules: FilterGroup[];
   onEditWhitelist: () => void;
   onEditBlacklist: () => void;
+  onEditLogicalRules: () => void;
   config: OreConfig;
   fileName: string;
 }
@@ -49,8 +51,10 @@ export function Dashboard({
   onDeleteInterface,
   idWhitelist,
   idBlacklist,
+  logicalRules,
   onEditWhitelist,
   onEditBlacklist,
+  onEditLogicalRules,
   config,
   fileName
 }: DashboardProps) {
@@ -96,6 +100,12 @@ export function Dashboard({
         kindLabel="按职责管理规则，支持启用状态和注释，显示时优先展示注释。"
         groups={idBlacklist}
         onEdit={onEditBlacklist}
+      />
+      <FilterListCard
+        title="逻辑规则"
+        kindLabel="按角色管理逻辑表达式，支持拖拽命令单元、运算符和括号。"
+        groups={logicalRules}
+        onEdit={onEditLogicalRules}
       />
 
       <ExportSection
