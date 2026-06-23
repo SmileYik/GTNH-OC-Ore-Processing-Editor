@@ -1,11 +1,32 @@
 import { createPortal } from 'react-dom';
 import { useEffect } from 'react';
+import { useRef } from 'react';
 import type { ReactNode } from 'react';
 
 let modalScrollLockCount = 0;
 let previousBodyOverflow = '';
 let previousBodyPaddingRight = '';
 let previousHtmlOverflow = '';
+let modalSequence = 0;
+const modalStack: number[] = [];
+
+function registerModal(): number {
+  const modalId = modalSequence + 1;
+  modalSequence = modalId;
+  modalStack.push(modalId);
+  return modalId;
+}
+
+function unregisterModal(modalId: number) {
+  const index = modalStack.indexOf(modalId);
+  if (index >= 0) {
+    modalStack.splice(index, 1);
+  }
+}
+
+function isTopModal(modalId: number): boolean {
+  return modalStack[modalStack.length - 1] === modalId;
+}
 
 function lockDocumentScroll() {
   if (typeof document === 'undefined') {
@@ -71,13 +92,23 @@ export function Modal({
   children,
   footer
 }: ModalProps) {
+  const modalIdRef = useRef<number | null>(null);
+
   useEffect(() => {
     if (!open) {
       return undefined;
     }
 
+    const modalId = registerModal();
+    modalIdRef.current = modalId;
     lockDocumentScroll();
-    return () => unlockDocumentScroll();
+    return () => {
+      unlockDocumentScroll();
+      unregisterModal(modalId);
+      if (modalIdRef.current === modalId) {
+        modalIdRef.current = null;
+      }
+    };
   }, [open]);
 
   useEffect(() => {
@@ -86,7 +117,7 @@ export function Modal({
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === 'Escape' && modalIdRef.current !== null && isTopModal(modalIdRef.current)) {
         onClose();
       }
     };

@@ -1,5 +1,5 @@
 import type { LogicalCommandDefinition } from '../LogicalRules';
-import { createInputLogicalCommandArgsField } from './shared';
+import { createItemResourceComparisonLogicalCommandArgsField } from './resourceFields.item';
 
 export const CheckItemLabelCommandDefinition = {
   name: "check-item-label",
@@ -9,10 +9,11 @@ export const CheckItemLabelCommandDefinition = {
   description: "读取指定物品名称在 ME 网络中的总数量，并按比较表达式返回 true / false。",
   argsLabel: "比较表达式",
   argsPlaceholder: "Iron Ingot >= 32",
-  argsHint: "格式类似 `物品名 >= 数字`，例如 `Iron Ingot >= 32`。",
-  renderArgsField: createInputLogicalCommandArgsField(
+  argsHint: "输入一个物品名称文本值，再选择比较符号和数量；数据库只负责辅助补全，不要求一定命中。",
+  renderArgsField: createItemResourceComparisonLogicalCommandArgsField(
     "比较表达式",
-    "Iron Ingot >= 32",
-    "格式类似 `物品名 >= 数字`，例如 `Iron Ingot >= 32`。"
+    "Iron Ingot",
+    "输入物品名称文本值，例如 `Iron Ingot`，也可以直接手动输入自定义文本。",
+    "label"
   )
 } satisfies LogicalCommandDefinition;

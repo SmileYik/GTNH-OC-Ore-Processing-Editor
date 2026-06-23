@@ -1,18 +1,19 @@
 import type { LogicalCommandDefinition } from '../LogicalRules';
-import { createInputLogicalCommandArgsField } from './shared';
+import { createItemResourceSelectorLogicalCommandArgsField } from './resourceFields.item';
 
 export const MarkItemLabelCommandDefinition = {
   name: "mark-item-label",
   label: "标记物品名",
   aliases: ["MIL"],
   category: "标记",
-  description: "把指定物品名称加入缓存中的 markedItems，后续交给筛选流程使用。",
+  description: "把指定物品名称文本值加入缓存中的 markedItems，后续交给筛选流程使用。",
   argsLabel: "物品名",
   argsPlaceholder: "Iron Ingot",
-  argsHint: "输入需要标记的物品名称，支持在同一名称下匹配多个物品。",
-  renderArgsField: createInputLogicalCommandArgsField(
+  argsHint: "输入一个物品名称文本值，数据库只作辅助查询；如果没有命中，也可以直接手动填写。",
+  renderArgsField: createItemResourceSelectorLogicalCommandArgsField(
     "物品名",
     "Iron Ingot",
-    "输入需要标记的物品名称，支持在同一名称下匹配多个物品。"
+    "输入物品名称文本值，或使用右侧按钮从数据库中选择。",
+    "label"
   )
 } satisfies LogicalCommandDefinition;
