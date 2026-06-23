@@ -6,10 +6,10 @@ export const MarkItemLabelCommandDefinition = {
   label: "标记物品名",
   aliases: ["MIL"],
   category: "标记",
-  description: "把指定物品名称文本值加入缓存中的 markedItems，后续交给筛选流程使用。",
+  description: "把指定物品名称文本值加入缓存中的 markedItems 数组表中，后续交给筛选流程使用。",
   argsLabel: "物品名",
   argsPlaceholder: "Iron Ingot",
-  argsHint: "输入一个物品名称文本值，数据库只作辅助查询；如果没有命中，也可以直接手动填写。",
+  argsHint: "",
   renderArgsField: createItemResourceSelectorLogicalCommandArgsField(
     "物品名",
     "Iron Ingot",

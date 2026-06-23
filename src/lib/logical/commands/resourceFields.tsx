@@ -24,7 +24,7 @@ import {
   type ResourceSelectionMode
 } from '../../resourceDatabase';
 
-type ComparisonOperator = '<' | '<=' | '==' | '>=' | '>' | '~=';
+type ComparisonOperator = '<' | '<=' | '==' | '>=' | '>' | '!=';
 
 export interface ResourceFilters {
   query: string;
@@ -100,7 +100,7 @@ const COMPARISON_OPTIONS: Array<{ value: ComparisonOperator; label: string }> = 
   { value: '==', label: '==' },
   { value: '>=', label: '>=' },
   { value: '>', label: '>' },
-  { value: '~=', label: '~=' }
+  { value: '!=', label: '!=' }
 ];
 
 const VIRTUAL_ROW_HEIGHT = 96;
@@ -111,8 +111,8 @@ const RESOURCE_SORT_COLLATOR = new Intl.Collator(undefined, {
 });
 
 function normalizeComparator(value: string): ComparisonOperator {
-  if (value === '!=') {
-    return '~=';
+  if (value === '~=') {
+    return '!=';
   }
 
   return (COMPARISON_OPTIONS.find((option) => option.value === value)?.value ?? '>=') as ComparisonOperator;
@@ -142,10 +142,11 @@ function parseComparisonExpression(value: string): {
   }
 
   const comparator = normalizeComparator(match[2]);
+  
   return {
     resource: match[1].trim(),
     comparator,
-    amount: match[3].trim() || '0'
+    amount: (match[3].trim() || '0').replace(/^0+/g, "") || '0'
   };
 }
 
@@ -226,32 +227,16 @@ function compareResourceRecords(
 }
 
 function matchesCommonFilters(record: ResourceRecord, filters: ResourceFilters): boolean {
-  const query = filters.query.trim().toLowerCase();
-  if (query && !record.searchText.includes(query)) {
-    return false;
+  const matches = (a: string, b: string) => {
+    a = a.trim().toLowerCase()
+    return !a || b.includes(a)
   }
 
-  const modId = filters.modId.trim().toLowerCase();
-  if (modId && !record.modId.toLowerCase().includes(modId)) {
-    return false;
-  }
-
-  const key = filters.key.trim().toLowerCase();
-  if (key && !record.key.toLowerCase().includes(key)) {
-    return false;
-  }
-
-  const localizedName = filters.localizedName.trim().toLowerCase();
-  if (localizedName && !record.localizedName.toLowerCase().includes(localizedName)) {
-    return false;
-  }
-
-  const internalName = filters.internalName.trim().toLowerCase();
-  if (internalName && !record.internalName.toLowerCase().includes(internalName)) {
-    return false;
-  }
-
-  return true;
+  return matches(filters.query, record.searchText)
+    && matches(filters.modId, record.modId)
+    && matches(filters.key, record.key)
+    && matches(filters.localizedName, record.localizedName)
+    && matches(filters.internalName, record.internalName)
 }
 
 function useVirtualWindow(itemCount: number, rowHeight: number, overscan: number) {
@@ -414,13 +399,17 @@ function ResourcePickerList({ records, currentValue, valueMode, onSelect, spec }
       {visibleRecords.map((record) => {
         const isSelected = matchesSelectedValue(record, currentValue, valueMode);
         const selectionValue = getResourceSelectionValue(record, valueMode);
+        let title = record.displayName
+        if ('tooltip' in record) {
+          title += '\n\n' + record.tooltip
+        }
         return (
           <button
             key={record.key}
             type="button"
             className={`resource-picker-modal__result${isSelected ? ' is-selected' : ''}`}
             onClick={() => onSelect(selectionValue)}
-            title={record.displayName}
+            title={title}
           >
             <span className="resource-picker-modal__result-title">{formatResourceDisplay(record)}</span>
             <span className="resource-picker-modal__result-subtitle">{spec.formatSubtitle(record)}</span>
@@ -517,23 +506,16 @@ function ResourcePickerModal({ spec, currentValue, valueMode, onClose, onSelect 
         ? '数据库加载失败'
         : `数据库已加载 ${records.length} 条`;
 
-  const recordIndexes = useMemo(() => records.map((_, index) => index), [records]);
-  const resourceSortValues = useMemo(
-    () => records.map((it) => getResourceSortValue(it, filters.sortKey)),
-    [filters.sortKey, records]
-  );
-  const sortedRecordIndexes = useMemo(() => {
-    return [...recordIndexes].sort((left, right) =>
+  const sortedRecords = useMemo(() => {
+    return [...records].sort((left, right) =>
       compareResourceRecords(
-        records[left],
-        records[right],
+        left,
+        right,
         filters.sortKey,
         filters.sortDirection,
-        resourceSortValues[left],
-        resourceSortValues[right]
       )
     );
-  }, [filters.sortDirection, filters.sortKey, recordIndexes, records, resourceSortValues]);
+  }, [filters.sortDirection, filters.sortKey, records]);
 
   const filterState = useMemo(
     () => ({
@@ -560,7 +542,9 @@ function ResourcePickerModal({ spec, currentValue, valueMode, onClose, onSelect 
       temperatureMin: filters.temperatureMin,
       temperatureMax: filters.temperatureMax,
       luminosityMin: filters.luminosityMin,
-      luminosityMax: filters.luminosityMax
+      luminosityMax: filters.luminosityMax,
+      sortKey: filters.sortKey,
+      sortDirection: filters.sortDirection,
     }),
     [
       deferredQuery,
@@ -586,20 +570,17 @@ function ResourcePickerModal({ spec, currentValue, valueMode, onClose, onSelect 
       filters.temperatureMax,
       filters.temperatureMin,
       filters.viscosityMax,
-      filters.viscosityMin
+      filters.viscosityMin,
+      filters.sortKey,
+      filters.sortDirection
     ]
   );
 
-  const filteredRecordIndexes = useMemo(() => {
-    return sortedRecordIndexes.filter((recordIndex) => {
-      const record = records[recordIndex];
+  const filteredRecords = useMemo(() => {
+    return sortedRecords.filter((record) => {
       return matchesCommonFilters(record, filterState) && spec.matchesSpecificFilters(record, filterState);
     });
-  }, [filterState, records, sortedRecordIndexes, spec]);
-  const filteredRecords = useMemo(
-    () => filteredRecordIndexes.map((recordIndex) => records[recordIndex]),
-    [filteredRecordIndexes, records]
-  );
+  }, [filterState, records, spec]);
 
   const resetFilters = () => {
     setFilters(spec.createDefaultFilters());
@@ -609,7 +590,7 @@ function ResourcePickerModal({ spec, currentValue, valueMode, onClose, onSelect 
     <Modal
       open
       title={`选择${getResourceKindLabel(spec.kind)}`}
-      subtitle="可直接输入自定义文本，或在弹窗里从数据库记录中选择；数据库仅在这里加载。"
+      subtitle={`挑选一个你喜欢的${getResourceKindLabel(spec.kind)}`}
       wide
       sheetClassName="modal-sheet--resource-picker"
       onClose={onClose}
@@ -739,7 +720,7 @@ function ResourcePickerModal({ spec, currentValue, valueMode, onClose, onSelect 
                 <div>
                   <h3 className="editor-card__title">结果列表</h3>
                   <p className="resource-picker-modal__section-copy">
-                    点击条目即可写入上方输入框。列表使用虚拟滚动，只渲染可见行，没命中的文本也可以继续手动输入。
+                    挑选一个你喜欢的
                   </p>
                 </div>
                 <div className="chip chip--soft">
@@ -748,7 +729,7 @@ function ResourcePickerModal({ spec, currentValue, valueMode, onClose, onSelect 
               </div>
 
               {filteredRecords.length === 0 ? (
-                <div className="empty-state empty-state--compact">没有找到符合条件的实例。</div>
+                <div className="empty-state empty-state--compact">空空如也。</div>
               ) : (
                 <ResourcePickerList
                   records={filteredRecords}
@@ -847,7 +828,8 @@ export function createResourceComparisonLogicalCommandArgsField(
     const handleChange = (next: { resource?: string; comparator?: ComparisonOperator; amount?: string }) => {
       const resource = next.resource ?? parsed.resource;
       const comparator = next.comparator ?? parsed.comparator;
-      const amount = next.amount ?? parsed.amount;
+      const amount = ((next.amount ?? parsed.amount) || '0').replace(/^0+/, '') || '0';
+      
       onChange(formatComparisonExpression(resource, comparator, amount));
     };
 

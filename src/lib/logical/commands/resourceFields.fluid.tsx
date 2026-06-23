@@ -6,9 +6,8 @@ import {
   createResourceSelectorLogicalCommandArgsField,
   type ResourceFilters,
   type ResourcePickerSpec,
-  type ResourceRecord
 } from './resourceFields';
-import type { ResourceSelectionMode } from '../../resourceDatabase';
+import type { ResourceRecord, ResourceSelectionMode } from '../../resourceDatabase';
 
 const FLUID_SORT_OPTIONS = [
   { value: 'displayName', label: '本地名称' },

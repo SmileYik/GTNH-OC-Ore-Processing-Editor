@@ -9,7 +9,7 @@ export const CheckItemLabelCommandDefinition = {
   description: "读取指定物品名称在 ME 网络中的总数量，并按比较表达式返回 true / false。",
   argsLabel: "比较表达式",
   argsPlaceholder: "Iron Ingot >= 32",
-  argsHint: "输入一个物品名称文本值，再选择比较符号和数量；数据库只负责辅助补全，不要求一定命中。",
+  argsHint: "",
   renderArgsField: createItemResourceComparisonLogicalCommandArgsField(
     "比较表达式",
     "Iron Ingot",
