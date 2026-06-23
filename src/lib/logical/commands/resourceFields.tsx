@@ -362,7 +362,7 @@ interface ResourcePickerListProps {
   records: ResourceRecord[];
   currentValue: string;
   valueMode: ResourceSelectionMode;
-  onSelect: (nextValue: string) => void;
+  onSelect: (nextValue: string, record: ResourceRecord) => void;
   spec: ResourcePickerSpec;
 }
 
@@ -408,7 +408,7 @@ function ResourcePickerList({ records, currentValue, valueMode, onSelect, spec }
             key={record.key}
             type="button"
             className={`resource-picker-modal__result${isSelected ? ' is-selected' : ''}`}
-            onClick={() => onSelect(selectionValue)}
+            onClick={() => onSelect(selectionValue, record)}
             title={title}
           >
             <span className="resource-picker-modal__result-title">{formatResourceDisplay(record)}</span>
@@ -485,10 +485,10 @@ interface ResourcePickerModalProps {
   currentValue: string;
   valueMode: ResourceSelectionMode;
   onClose: () => void;
-  onSelect: (nextValue: string) => void;
+  onSelect: (nextValue: string, record: ResourceRecord) => void;
 }
 
-function ResourcePickerModal({ spec, currentValue, valueMode, onClose, onSelect }: ResourcePickerModalProps) {
+export function ResourcePickerModal({ spec, currentValue, valueMode, onClose, onSelect }: ResourcePickerModalProps) {
   const [filters, setFilters] = useState<ResourceFilters>(() => spec.createDefaultFilters());
   const { status, database, error } = useResourceDataset(spec.kind);
   const records = database?.records ?? [];

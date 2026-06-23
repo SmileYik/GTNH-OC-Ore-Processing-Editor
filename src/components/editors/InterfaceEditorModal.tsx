@@ -48,7 +48,7 @@ export function InterfaceEditorModal({
     const nextRole = role.trim();
 
     if (!nextId) {
-      setError('输出口 ID 不能为空');
+      setError('ME 接口地址不能为空');
       return;
     }
 
@@ -63,7 +63,7 @@ export function InterfaceEditorModal({
     }
 
     if (existingIds.some((entry) => entry !== initial.id && entry === nextId)) {
-      setError(`输出口 "${nextId}" 已存在`);
+      setError(`ME 接口地址 "${nextId}" 已存在`);
       return;
     }
 
@@ -73,8 +73,8 @@ export function InterfaceEditorModal({
   return (
     <Modal
       open={open}
-      title={mode === 'add' ? '新增输出口' : '编辑输出口'}
-      subtitle="输出口 ID 需要唯一，并且要指向一个职责。"
+      title={mode === 'add' ? '新增 ME 接口地址' : '编辑 ME 接口地址'}
+      subtitle="ME 接口地址 需要唯一，并且要指向一个职责。"
       onClose={onClose}
       footer={
         <>
@@ -89,7 +89,7 @@ export function InterfaceEditorModal({
     >
       <div className="modal-form">
         {fieldRow(
-          '输出口 ID',
+          'ME 接口地址',
           <input
             className="input"
             value={id}
@@ -102,7 +102,7 @@ export function InterfaceEditorModal({
             }}
             placeholder="例如：c6220ff-e6bb-452f-b505-ec45ac813170"
           />,
-          '这里保存的是输出口表里的 key。'
+          '可以通过 OpenComputer 中的调试器右击 ME 接口贴着的适配器即可获取到 ME 接口地址'
         )}
 
         {fieldRow(

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { cloneFilterGroups, formatFilterRuleLabel, type FilterGroup, type FilterRuleEntry } from '../../lib/OreConfigManager';
 import { Modal } from '../Modal';
 import { fieldRow } from './shared';
+import { ITEM_RESOURCE_PICKER_SPEC } from '../../lib/logical/commands/resourceFields.item';
+import { ResourcePickerModal } from '../../lib/logical/commands/resourceFields';
 
 type Selection =
   | {
@@ -60,6 +62,7 @@ export function ListEditorModal({
   const [newRuleDraft, setNewRuleDraft] = useState<FilterRuleEntry>(createEmptyRuleDraft());
   const [ruleDraft, setRuleDraft] = useState<FilterRuleEntry>(createEmptyRuleDraft());
   const [error, setError] = useState('');
+  const [openItemPicker, setOpenItemPicker] = useState(false)
 
   useEffect(() => {
     if (!open) {
@@ -443,24 +446,41 @@ export function ListEditorModal({
                 />,
                 '重命名后会直接替换该组对应的 key。'
               )}
-              {fieldRow(
-                '规则文本',
-                <input
-                  className="input"
-                  value={newRuleDraft.rule}
-                  onChange={(event) =>
-                    setNewRuleDraft((current) => ({ ...current, rule: event.target.value }))
-                  }
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') {
-                      event.preventDefault();
-                      addRule();
+              <div className="resource-picker-control__row">
+                {fieldRow(
+                  '规则文本',
+                  <input
+                    className="input"
+                    value={newRuleDraft.rule}
+                    onChange={(event) =>
+                      setNewRuleDraft((current) => ({ ...current, rule: event.target.value }))
                     }
-                  }}
-                  placeholder="例如: gregtech:gt.comb#25"
-                />,
-                '如果规则填写了注释，界面会优先显示注释。'
-              )}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        addRule()
+                      }
+                    }}
+                    placeholder="输入规则文本"
+                  />,
+                  '规则文本是物品的ID。'
+                )}
+                <button type="button" className="button button--tonal button--compact" onClick={() => setOpenItemPicker(true)}>
+                  选择
+                </button>
+                {openItemPicker ? (
+                  <ResourcePickerModal
+                    spec={ITEM_RESOURCE_PICKER_SPEC}
+                    currentValue={newRuleDraft.rule}
+                    valueMode={'id'}
+                    onClose={() => setOpenItemPicker(false)}
+                    onSelect={(nextValue, record) => {
+                      setNewRuleDraft((current) => ({ ...current, rule: nextValue, comments: current.comments || record.localizedName }))
+                      setOpenItemPicker(false);
+                    }}
+                  />
+                ) : null}
+              </div>
               {fieldRow(
                 '是否启用',
                 <label className="export-panel__toggle rule-toggle">
@@ -502,24 +522,41 @@ export function ListEditorModal({
           ) : (
             <div className="editor-card">
               <h3 className="editor-card__title">规则</h3>
-              {fieldRow(
-                '规则文本',
-                <input
-                  className="input"
-                  value={ruleDraft.rule}
-                  onChange={(event) =>
-                    setRuleDraft((current) => ({ ...current, rule: event.target.value }))
-                  }
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') {
-                      event.preventDefault();
-                      renameRule();
+              <div className="resource-picker-control__row">
+                {fieldRow(
+                  '规则文本',
+                  <input
+                    className="input"
+                    value={ruleDraft.rule}
+                    onChange={(event) =>
+                      setRuleDraft((current) => ({ ...current, rule: event.target.value }))
                     }
-                  }}
-                  placeholder="输入规则文本"
-                />,
-                '规则文本是存储用的真实 key。'
-              )}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        renameRule();
+                      }
+                    }}
+                    placeholder="输入规则文本"
+                  />,
+                  '规则文本是物品的ID。'
+                )}
+                <button type="button" className="button button--tonal button--compact" onClick={() => setOpenItemPicker(true)}>
+                  选择
+                </button>
+                {openItemPicker ? (
+                  <ResourcePickerModal
+                    spec={ITEM_RESOURCE_PICKER_SPEC}
+                    currentValue={ruleDraft.rule}
+                    valueMode={'id'}
+                    onClose={() => setOpenItemPicker(false)}
+                    onSelect={(nextValue, record) => {
+                      setRuleDraft((current) => ({ ...current, rule: nextValue, comments: current.comments || record.localizedName }))
+                      setOpenItemPicker(false);
+                    }}
+                  />
+                ) : null}
+              </div>
               {fieldRow(
                 '是否启用',
                 <label className="export-panel__toggle rule-toggle">

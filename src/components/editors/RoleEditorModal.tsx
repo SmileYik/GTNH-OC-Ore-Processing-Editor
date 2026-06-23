@@ -67,7 +67,7 @@ export function RoleEditorModal({
     <Modal
       open={open}
       title={mode === 'add' ? '新增职责' : '编辑职责'}
-      subtitle="职责名称会联动流程、输出口和白名单/黑名单。"
+      subtitle="职责名称会联动流程、ME接口和白名单/黑名单。"
       onClose={onClose}
       footer={
         <>

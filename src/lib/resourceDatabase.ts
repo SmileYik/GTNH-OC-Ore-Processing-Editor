@@ -323,23 +323,26 @@ export function findResourceRecord(
   mode: ResourceSelectionMode = 'id'
 ): ResourceRecord | null {
   const trimmed = value.trim();
+  
   if (!trimmed) {
     return null;
   }
+
+  let lowerCase = trimmed.replace('#', ':').toLowerCase();
 
   if (isResourceDatabaseEntry(records)) {
     const { index } = records;
     if (mode === 'label') {
       return (
         index.byLocalizedName.get(trimmed) ??
-        index.byKey.get(trimmed) ??
+        index.byKey.get(lowerCase) ??
         index.byInternalName.get(trimmed) ??
         null
       );
     }
-
+    
     return (
-      index.byKey.get(trimmed) ?? index.byInternalName.get(trimmed) ?? index.byLocalizedName.get(trimmed) ?? null
+      index.byKey.get(lowerCase) ?? index.byInternalName.get(trimmed) ?? index.byLocalizedName.get(trimmed) ?? null
     );
   }
 
@@ -347,11 +350,11 @@ export function findResourceRecord(
     mode === 'label'
       ? [
           (record: ResourceRecord) => record.localizedName === trimmed,
-          (record: ResourceRecord) => record.key === trimmed,
+          (record: ResourceRecord) => record.key === lowerCase,
           (record: ResourceRecord) => record.internalName === trimmed
         ]
       : [
-          (record: ResourceRecord) => record.key === trimmed,
+          (record: ResourceRecord) => record.key === lowerCase,
           (record: ResourceRecord) => record.internalName === trimmed,
           (record: ResourceRecord) => record.localizedName === trimmed
         ];

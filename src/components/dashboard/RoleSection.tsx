@@ -132,8 +132,8 @@ function InterfaceSwipeItem({ id, onDelete }: InterfaceSwipeItemProps) {
           type="button"
           className="icon-button icon-button--inline role-card__interface-delete-desktop"
           onClick={handleDelete}
-          aria-label={`删除输出口 ${id}`}
-          title={`删除输出口 ${id}`}
+          aria-label={`删除ME接口 ${id}`}
+          title={`删除ME接口 ${id}`}
         >
           ×
         </button>
@@ -168,7 +168,7 @@ export function RoleSection({
   return (
     <Section
       title="职责列表"
-      subtitle="职责名称、机器和它绑定的输出口都在这里单独维护。"
+      subtitle="职责名称、机器和它绑定的ME接口都在这里单独维护。"
       className="panel--tall"
       actions={
         <button type="button" className="button button--filled button--compact" onClick={onAddRole}>
@@ -210,10 +210,10 @@ export function RoleSection({
                   </div>
 
                   <div className="role-card__body">
-                    <span className="role-card__label">所属输出口</span>
+                    <span className="role-card__label">包含以下ME接口</span>
                     <div className="role-card__interface-list">
                       {relatedInterfaces.length === 0 ? (
-                        <span className="empty-chip">无输出口</span>
+                        <span className="empty-chip">无ME接口</span>
                       ) : (
                         relatedInterfaces.map((entry) => (
                           <InterfaceSwipeItem key={entry.id} id={entry.id} onDelete={onDeleteInterface} />
