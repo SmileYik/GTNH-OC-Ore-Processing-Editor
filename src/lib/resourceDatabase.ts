@@ -1,3 +1,15 @@
+import {
+  createElement,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  type ReactNode
+} from 'react';
+
 export type ResourceKind = 'item' | 'fluid';
 
 interface ResourceBaseRecord {
@@ -55,12 +67,200 @@ export interface ResourceDatabaseEntry {
   index: ResourceDatabaseIndex;
 }
 
+type ResourceDatabaseStatus = 'idle' | 'loading' | 'ready' | 'error';
+
+interface ResourceDatabaseSliceState {
+  status: ResourceDatabaseStatus;
+  database: ResourceDatabaseEntry | null;
+  error: string;
+}
+
+interface ResourceDatabaseState {
+  item: ResourceDatabaseSliceState;
+  fluid: ResourceDatabaseSliceState;
+}
+
+type ResourceDatabaseAction =
+  | { type: 'request'; kind: ResourceKind }
+  | { type: 'success'; kind: ResourceKind; database: ResourceDatabaseEntry }
+  | { type: 'failure'; kind: ResourceKind; error: string };
+
+interface ResourceDatabaseContextValue {
+  state: ResourceDatabaseState;
+  ensureDatabase: (kind: ResourceKind) => Promise<ResourceDatabaseEntry>;
+}
+
+const ResourceDatabaseContext = createContext<ResourceDatabaseContextValue | null>(null);
+
 interface ResourceDatabaseCacheEntry {
   pending: Promise<ResourceDatabaseEntry> | null;
   snapshot: ResourceDatabaseEntry | null;
 }
 
 const resourceDatabaseCache = new Map<ResourceKind, ResourceDatabaseCacheEntry>();
+
+function createResourceDatabaseSlice(kind: ResourceKind): ResourceDatabaseSliceState {
+  const snapshot = peekResourceDatabase(kind);
+
+  if (snapshot) {
+    return {
+      status: 'ready',
+      database: snapshot,
+      error: ''
+    };
+  }
+
+  return {
+    status: 'idle',
+    database: null,
+    error: ''
+  };
+}
+
+function createInitialResourceDatabaseState(): ResourceDatabaseState {
+  return {
+    item: createResourceDatabaseSlice('item'),
+    fluid: createResourceDatabaseSlice('fluid')
+  };
+}
+
+function resourceDatabaseReducer(
+  state: ResourceDatabaseState,
+  action: ResourceDatabaseAction
+): ResourceDatabaseState {
+  const current = state[action.kind];
+
+  if (action.type === 'request') {
+    if (current.status === 'loading' || current.status === 'ready') {
+      return state;
+    }
+
+    return {
+      ...state,
+      [action.kind]: {
+        status: 'loading',
+        database: null,
+        error: ''
+      }
+    };
+  }
+
+  if (action.type === 'success') {
+    if (current.status === 'ready' && current.database === action.database && current.error === '') {
+      return state;
+    }
+
+    return {
+      ...state,
+      [action.kind]: {
+        status: 'ready',
+        database: action.database,
+        error: ''
+      }
+    };
+  }
+
+  if (current.status === 'error' && current.error === action.error) {
+    return state;
+  }
+
+  return {
+    ...state,
+    [action.kind]: {
+      status: 'error',
+      database: null,
+      error: action.error
+    }
+  };
+}
+
+export function ResourceDatabaseProvider({ children }: { children: ReactNode }) {
+  const [state, dispatch] = useReducer(resourceDatabaseReducer, undefined, createInitialResourceDatabaseState);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const dispatchIfMounted = useCallback(
+    (action: ResourceDatabaseAction) => {
+      if (isMountedRef.current) {
+        dispatch(action);
+      }
+    },
+    [dispatch]
+  );
+
+  const ensureDatabase = useCallback((kind: ResourceKind) => {
+    const cacheEntry = getResourceDatabaseCacheEntry(kind);
+
+    if (cacheEntry.snapshot) {
+      dispatchIfMounted({ type: 'success', kind, database: cacheEntry.snapshot });
+      return Promise.resolve(cacheEntry.snapshot);
+    }
+
+    dispatchIfMounted({ type: 'request', kind });
+
+    return getResourceDatabasePromise(kind)
+      .then((database) => {
+        dispatchIfMounted({ type: 'success', kind, database });
+        return database;
+      })
+      .catch((error: unknown) => {
+        dispatchIfMounted({
+          type: 'failure',
+          kind,
+          error: error instanceof Error ? error.message : String(error)
+        });
+        throw error;
+      });
+  }, [dispatchIfMounted]);
+
+  const contextValue = useMemo(
+    () => ({
+      state,
+      ensureDatabase
+    }),
+    [ensureDatabase, state]
+  );
+
+  return createElement(ResourceDatabaseContext.Provider, { value: contextValue }, children);
+}
+
+export function useResourceDatabase(kind: ResourceKind): ResourceDatabaseSliceState {
+  const context = useContext(ResourceDatabaseContext);
+
+  if (!context) {
+    throw new Error('useResourceDatabase must be used within ResourceDatabaseProvider');
+  }
+
+  const { state, ensureDatabase } = context;
+  const slice = state[kind];
+
+  useEffect(() => {
+    void ensureDatabase(kind);
+  }, [ensureDatabase, kind]);
+
+  return slice;
+}
+
+export function usePreloadResourceDatabase(kind: ResourceKind): void {
+  const context = useContext(ResourceDatabaseContext);
+
+  if (!context) {
+    throw new Error('usePreloadResourceDatabase must be used within ResourceDatabaseProvider');
+  }
+
+  const { ensureDatabase } = context;
+
+  useEffect(() => {
+    void ensureDatabase(kind);
+  }, [ensureDatabase, kind]);
+}
 
 function normalizeBaseUrl(baseUrl: string): string {
   if (!baseUrl) {
@@ -268,20 +468,26 @@ function getResourceDatabaseCacheEntry(kind: ResourceKind): ResourceDatabaseCach
   return cacheEntry;
 }
 
-export async function loadResourceDatabase(kind: ResourceKind): Promise<ResourceDatabaseEntry> {
+function createResourceDatabaseSnapshot(records: ResourceRecord[]): ResourceDatabaseEntry {
+  return {
+    records,
+    index: createResourceIndex(records)
+  };
+}
+
+function getResourceDatabasePromise(kind: ResourceKind): Promise<ResourceDatabaseEntry> {
   const cacheEntry = getResourceDatabaseCacheEntry(kind);
+
   if (cacheEntry.snapshot) {
-    return cacheEntry.snapshot;
+    return Promise.resolve(cacheEntry.snapshot);
   }
 
   if (!cacheEntry.pending) {
     cacheEntry.pending = fetchResourceDatabase(kind)
       .then((records) => {
-        const snapshot: ResourceDatabaseEntry = {
-          records,
-          index: createResourceIndex(records)
-        };
+        const snapshot = createResourceDatabaseSnapshot(records);
         cacheEntry.snapshot = snapshot;
+        cacheEntry.pending = null;
         return snapshot;
       })
       .catch((error) => {
@@ -291,6 +497,10 @@ export async function loadResourceDatabase(kind: ResourceKind): Promise<Resource
   }
 
   return cacheEntry.pending;
+}
+
+export async function loadResourceDatabase(kind: ResourceKind): Promise<ResourceDatabaseEntry> {
+  return getResourceDatabasePromise(kind);
 }
 
 export function peekResourceDatabase(kind: ResourceKind): ResourceDatabaseEntry | null {

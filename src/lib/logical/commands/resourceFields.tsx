@@ -16,9 +16,8 @@ import {
   formatResourceDisplay,
   getResourceKindLabel,
   getResourceSelectionValue,
-  loadResourceDatabase,
-  peekResourceDatabase,
-  type ResourceDatabaseEntry,
+  usePreloadResourceDatabase,
+  useResourceDatabase,
   type ResourceKind,
   type ResourceRecord,
   type ResourceSelectionMode
@@ -86,12 +85,6 @@ function LogicalCommandFieldPanel({ label, hint, children }: LogicalCommandField
       {hint ? <span className="field-hint">{hint}</span> : null}
     </div>
   );
-}
-
-interface ResourceDatasetState {
-  status: 'loading' | 'ready' | 'error';
-  database: ResourceDatabaseEntry | null;
-  error: string;
 }
 
 const COMPARISON_OPTIONS: Array<{ value: ComparisonOperator; label: string }> = [
@@ -312,52 +305,6 @@ function useVirtualWindow(itemCount: number, rowHeight: number, overscan: number
   };
 }
 
-function useResourceDataset(kind: ResourceKind): ResourceDatasetState {
-  const [state, setState] = useState<ResourceDatasetState>(() => {
-    const cached = peekResourceDatabase(kind);
-    if (cached) {
-      return { status: 'ready', database: cached, error: '' };
-    }
-
-    return { status: 'loading', database: null, error: '' };
-  });
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const cached = peekResourceDatabase(kind);
-    if (cached) {
-      setState({ status: 'ready', database: cached, error: '' });
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    setState({ status: 'loading', database: null, error: '' });
-    loadResourceDatabase(kind)
-      .then((database) => {
-        if (!cancelled) {
-          setState({ status: 'ready', database, error: '' });
-        }
-      })
-      .catch((error: unknown) => {
-        if (!cancelled) {
-          setState({
-            status: 'error',
-            database: null,
-            error: error instanceof Error ? error.message : String(error)
-          });
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [kind]);
-
-  return state;
-}
-
 interface ResourcePickerListProps {
   records: ResourceRecord[];
   currentValue: string;
@@ -490,7 +437,7 @@ interface ResourcePickerModalProps {
 
 export function ResourcePickerModal({ spec, currentValue, valueMode, onClose, onSelect }: ResourcePickerModalProps) {
   const [filters, setFilters] = useState<ResourceFilters>(() => spec.createDefaultFilters());
-  const { status, database, error } = useResourceDataset(spec.kind);
+  const { status, database, error } = useResourceDatabase(spec.kind);
   const records = database?.records ?? [];
   const deferredQuery = useDeferredValue(filters.query);
   const selectedRecord = useMemo(() => (database ? findResourceRecord(database, currentValue, valueMode) : null), [
@@ -499,8 +446,9 @@ export function ResourcePickerModal({ spec, currentValue, valueMode, onClose, on
     valueMode
   ]);
   const currentDisplayValue = selectedRecord ? formatResourceDisplay(selectedRecord) : currentValue.trim() || '（空）';
+  const isLoading = status === 'idle' || status === 'loading';
   const currentStatusLabel =
-    status === 'loading'
+    isLoading
       ? '数据库加载中'
       : status === 'error'
         ? '数据库加载失败'
@@ -609,7 +557,7 @@ export function ResourcePickerModal({ spec, currentValue, valueMode, onClose, on
 
         {status === 'error' ? <div className="form-error">{error || '数据库加载失败'}</div> : null}
 
-        {status === 'loading' ? (
+        {isLoading ? (
           <ResourcePickerSkeleton />
         ) : (
           <div className="resource-picker-modal__layout">
@@ -765,6 +713,7 @@ function ResourcePickerControl({
   actionLabel = '从列表选择'
 }: ResourcePickerControlProps) {
   const [open, setOpen] = useState(false);
+  usePreloadResourceDatabase(spec.kind);
 
   return (
     <div className="resource-picker-control">
