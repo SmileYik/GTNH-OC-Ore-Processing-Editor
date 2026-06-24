@@ -1,13 +1,8 @@
 import { type Dispatch, type SetStateAction } from 'react';
-import { fieldRow } from '../../../components/editors/shared';
-import {
-  createDefaultResourceFilters,
-  createResourceComparisonLogicalCommandArgsField,
-  createResourceSelectorLogicalCommandArgsField,
-  type ResourceFilters,
-  type ResourcePickerSpec,
-} from './resourceFields';
-import type { ResourceRecord, ResourceSelectionMode } from '../../resourceDatabase';
+import { fieldRow } from '../editors/shared';
+import { createDefaultResourceFilters, type ResourcePickerSpec } from './ResourcePicker';
+import type { ResourceRecord } from '../../lib/resourceDatabase';
+import type { ResourceFilters } from './resourcePickerQuery';
 
 const ITEM_SORT_OPTIONS = [
   { value: 'displayName', label: '本地名称' },
@@ -210,33 +205,3 @@ export const ITEM_RESOURCE_PICKER_SPEC = {
   formatDetail: formatItemDetail,
   renderSpecificFields: renderItemSpecificFields
 } satisfies ResourcePickerSpec;
-
-export function createItemResourceSelectorLogicalCommandArgsField(
-  label: string,
-  placeholder: string,
-  hint: string,
-  valueMode: ResourceSelectionMode = 'id'
-) {
-  return createResourceSelectorLogicalCommandArgsField(
-    ITEM_RESOURCE_PICKER_SPEC,
-    label,
-    placeholder,
-    hint,
-    valueMode
-  );
-}
-
-export function createItemResourceComparisonLogicalCommandArgsField(
-  label: string,
-  placeholder: string,
-  hint: string,
-  valueMode: ResourceSelectionMode = 'id'
-) {
-  return createResourceComparisonLogicalCommandArgsField(
-    ITEM_RESOURCE_PICKER_SPEC,
-    label,
-    placeholder,
-    hint,
-    valueMode
-  );
-}

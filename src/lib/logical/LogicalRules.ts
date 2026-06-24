@@ -157,7 +157,7 @@ export function getLogicalCommandNameOptions(name: string): Array<{ value: strin
     seen.add(normalized);
     options.push({
       value: normalized,
-      label: normalized === definition.name ? `${normalized}（本名）` : `${normalized}（别名）`
+      label: normalized === definition.name ? `${normalized}` : `${normalized}`
     });
   }
 

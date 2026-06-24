@@ -1,5 +1,6 @@
 import type { LogicalCommandDefinition } from '../LogicalRules';
-import { createFluidResourceComparisonLogicalCommandArgsField } from './resourceFields.fluid';
+import { FLUID_RESOURCE_PICKER_SPEC } from '../../../components/resourcePicker';
+import { createResourceComparisonLogicalCommandArgsField } from '../resourceFields';
 
 export const CheckFluidCommandDefinition = {
   name: "check-fluid",
@@ -10,7 +11,8 @@ export const CheckFluidCommandDefinition = {
   argsLabel: "比较表达式",
   argsPlaceholder: "water >= 1000",
   argsHint: "",
-  renderArgsField: createFluidResourceComparisonLogicalCommandArgsField(
+  renderArgsField: createResourceComparisonLogicalCommandArgsField(
+    FLUID_RESOURCE_PICKER_SPEC,
     "比较表达式",
     "water",
     "输入流体文本值，例如 `steam`，也可以直接手动输入自定义文本。",

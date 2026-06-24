@@ -1,5 +1,6 @@
 import type { LogicalCommandDefinition } from '../LogicalRules';
-import { createFluidResourceSelectorLogicalCommandArgsField } from './resourceFields.fluid';
+import { FLUID_RESOURCE_PICKER_SPEC } from '../../../components/resourcePicker';
+import { createResourceSelectorLogicalCommandArgsField } from '../resourceFields';
 
 export const MarkFluidCommandDefinition = {
   name: 'mark-fluid',
@@ -10,7 +11,8 @@ export const MarkFluidCommandDefinition = {
   argsLabel: '流体',
   argsPlaceholder: 'water',
   argsHint: '',
-  renderArgsField: createFluidResourceSelectorLogicalCommandArgsField(
+  renderArgsField: createResourceSelectorLogicalCommandArgsField(
+    FLUID_RESOURCE_PICKER_SPEC,
     '流体',
     'water',
     '输入流体的ID，或使用右侧按钮从数据库中选择。'

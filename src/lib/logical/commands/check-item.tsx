@@ -1,5 +1,6 @@
 import type { LogicalCommandDefinition } from '../LogicalRules';
-import { createItemResourceComparisonLogicalCommandArgsField } from './resourceFields.item';
+import { ITEM_RESOURCE_PICKER_SPEC } from '../../../components/resourcePicker';
+import { createResourceComparisonLogicalCommandArgsField } from '../resourceFields';
 
 export const CheckItemCommandDefinition = {
   name: "check-item",
@@ -10,7 +11,8 @@ export const CheckItemCommandDefinition = {
   argsLabel: "比较表达式",
   argsPlaceholder: "minecraft:stone:0 >= 64",
   argsHint: "",
-  renderArgsField: createItemResourceComparisonLogicalCommandArgsField(
+  renderArgsField: createResourceComparisonLogicalCommandArgsField(
+    ITEM_RESOURCE_PICKER_SPEC,
     "比较表达式",
     "minecraft:stone:0",
     "输入物品文本值，例如 `minecraft:stone:0`，也可以直接手动输入自定义文本。",

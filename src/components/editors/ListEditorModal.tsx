@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import { cloneFilterGroups, formatFilterRuleLabel, type FilterGroup, type FilterRuleEntry } from '../../lib/OreConfigManager';
 import { Modal } from '../Modal';
 import { fieldRow } from './shared';
-import { ITEM_RESOURCE_PICKER_SPEC } from '../../lib/logical/commands/resourceFields.item';
-import { ResourcePickerModal } from '../../lib/logical/commands/resourceFields';
+import { ITEM_RESOURCE_PICKER_SPEC, ResourcePickerModal } from '../resourcePicker';
 
 type Selection =
   | {

@@ -1,5 +1,6 @@
 import type { LogicalCommandDefinition } from '../LogicalRules';
-import { createItemResourceComparisonLogicalCommandArgsField } from './resourceFields.item';
+import { ITEM_RESOURCE_PICKER_SPEC } from '../../../components/resourcePicker';
+import { createResourceComparisonLogicalCommandArgsField } from '../resourceFields';
 
 export const CheckItemLabelCommandDefinition = {
   name: "check-item-label",
@@ -10,7 +11,8 @@ export const CheckItemLabelCommandDefinition = {
   argsLabel: "比较表达式",
   argsPlaceholder: "Iron Ingot >= 32",
   argsHint: "",
-  renderArgsField: createItemResourceComparisonLogicalCommandArgsField(
+  renderArgsField: createResourceComparisonLogicalCommandArgsField(
+    ITEM_RESOURCE_PICKER_SPEC,
     "比较表达式",
     "Iron Ingot",
     "输入物品名称文本值，例如 `Iron Ingot`，也可以直接手动输入自定义文本。",

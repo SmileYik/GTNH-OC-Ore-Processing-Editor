@@ -1,5 +1,6 @@
 import type { LogicalCommandDefinition } from '../LogicalRules';
-import { createItemResourceSelectorLogicalCommandArgsField } from './resourceFields.item';
+import { ITEM_RESOURCE_PICKER_SPEC } from '../../../components/resourcePicker';
+import { createResourceSelectorLogicalCommandArgsField } from '../resourceFields';
 
 export const MarkItemLabelCommandDefinition = {
   name: "mark-item-label",
@@ -10,7 +11,8 @@ export const MarkItemLabelCommandDefinition = {
   argsLabel: "物品名",
   argsPlaceholder: "Iron Ingot",
   argsHint: "",
-  renderArgsField: createItemResourceSelectorLogicalCommandArgsField(
+  renderArgsField: createResourceSelectorLogicalCommandArgsField(
+    ITEM_RESOURCE_PICKER_SPEC,
     "物品名",
     "Iron Ingot",
     "输入物品名称文本值，或使用右侧按钮从数据库中选择。",
