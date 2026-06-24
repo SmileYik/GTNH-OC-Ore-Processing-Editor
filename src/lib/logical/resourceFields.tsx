@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { type LogicalCommandDefinition } from './LogicalRules';
 import { ResourcePickerControl, type ResourcePickerSpec } from '../../components/resourcePicker';
-import type { ResourceSelectionMode } from '../resourceDatabase';
+import { findResourceRecord, peekResourceDatabase, type ResourceSelectionMode } from '../resourceDatabase';
 
 type ComparisonOperator = '<' | '<=' | '==' | '>=' | '>' | '!=';
 
@@ -83,17 +83,24 @@ export function createResourceSelectorLogicalCommandArgsField(
   hint: string,
   valueMode: ResourceSelectionMode = 'id'
 ): LogicalCommandDefinition['renderArgsField'] {
-  return ({ value, onChange }) => (
-    <LogicalCommandFieldPanel label={label} hint={hint}>
-      <ResourcePickerControl
-        spec={spec}
-        value={value}
-        onChange={onChange}
-        valueMode={valueMode}
-        placeholder={placeholder}
-      />
-    </LogicalCommandFieldPanel>
-  );
+
+  return ({ value, onChange }) => {
+    const records = peekResourceDatabase(spec.kind);
+    const record = records ? findResourceRecord(records, value) : null;
+    return (
+      <LogicalCommandFieldPanel label={label} hint={hint}>
+        <ResourcePickerControl
+          spec={spec}
+          value={value}
+          onChange={onChange}
+          valueMode={valueMode}
+          placeholder={placeholder}
+          actionLabel='选择'
+        />
+        {record && <span className="chip chip--soft">{`当前填入的为: ${record.localizedName}`}</span>}
+      </LogicalCommandFieldPanel>
+    )
+  };
 }
 
 export function createResourceComparisonLogicalCommandArgsField(
@@ -113,6 +120,9 @@ export function createResourceComparisonLogicalCommandArgsField(
       onChange(formatComparisonExpression(resource, comparator, amount));
     };
 
+    const records = peekResourceDatabase(spec.kind);
+    const record = records ? findResourceRecord(records, parsed.resource) : null;
+
     return (
       <LogicalCommandFieldPanel label={label} hint={hint}>
         <div className="resource-comparison">
@@ -126,6 +136,7 @@ export function createResourceComparisonLogicalCommandArgsField(
               placeholder={placeholder}
               actionLabel="选择"
             />
+            {record && <span className='chip chip--soft'>{`当前填入的为: ${record.localizedName}`}</span>}
           </div>
 
           <div className="resource-comparison__operators">

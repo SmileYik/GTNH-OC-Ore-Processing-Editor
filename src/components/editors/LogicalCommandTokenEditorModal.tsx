@@ -70,7 +70,7 @@ export function LogicalCommandTokenEditorModal({
     <Modal
       open={open}
       title="编辑命令单元"
-      subtitle="只编辑当前选中的命令节点，不影响整个规则结构。"
+      // subtitle="只编辑当前选中的命令节点，不影响整个规则结构。"
       sheetClassName="modal-sheet--logical-token"
       onClose={onClose}
       footer={footer}

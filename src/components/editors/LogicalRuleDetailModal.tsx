@@ -1016,7 +1016,6 @@ export function LogicalRuleDetailModal({
           <div className="logical-rule-workbench__section-header">
             <div>
               <h3 className="editor-card__title">规则工作台</h3>
-              <p className="logical-rule-workbench__section-copy">在这里编辑表达式、命令库和缓存。</p>
             </div>
             <div className="chip chip--path">
               {groupRole || '未命名角色组'}

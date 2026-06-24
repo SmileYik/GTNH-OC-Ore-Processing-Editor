@@ -3,6 +3,7 @@ import { cloneFilterGroups, formatFilterRuleLabel, type FilterGroup, type Filter
 import { Modal } from '../Modal';
 import { fieldRow } from './shared';
 import { ITEM_RESOURCE_PICKER_SPEC, ResourcePickerModal } from '../resourcePicker';
+import { findResourceRecord, peekResourceRecords } from '../../lib/resourceDatabase';
 
 type Selection =
   | {
@@ -54,6 +55,8 @@ function cloneRuleDraft(rule: FilterRuleEntry): FilterRuleEntry {
 
 function RuleEditor({value, onChange, onEnterDown}: RuleEditorProps) {
   const [open, setOpen] = useState(false);
+  const records = peekResourceRecords('item');
+  const matchedItem = records ? findResourceRecord(records, value) : ""
 
   return (
     <div className="resource-picker-control__row">
@@ -71,7 +74,7 @@ function RuleEditor({value, onChange, onEnterDown}: RuleEditorProps) {
           }}
           placeholder="输入规则文本"
         />,
-        '规则文本是物品的ID。'
+        matchedItem ? `当前填入的为: ${matchedItem.localizedName}` : '规则文本是物品的ID。'
       )}
       <button type="button" className="button button--tonal button--compact" onClick={() => setOpen(true)}>
         选择

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { LOGICAL_COMMAND_DEFINITIONS } from './commands';
+import { findResourceRecord, peekResourceDatabase } from '../resourceDatabase';
 
 export const LOGICAL_COMMAND_NAME_PATTERN = /^[a-zA-Z0-9_%\-]+$/;
 
@@ -213,7 +214,27 @@ export function cloneLogicalExpressionTokens(tokens: LogicalExpressionToken[]): 
 export function formatLogicalCommandSnapshot(snapshot: LogicalCommandSnapshot): string {
   const definition = getLogicalCommandDefinition(snapshot.name);
   const label = definition?.label ?? snapshot.name;
-  const args = compactArgs(snapshot.args);
+
+  let queriedArgs = null;
+  if (definition) {
+    let record = null;
+    const name = snapshot.args.split(/>=|<=|==|~=|!=|>|</)[0].trim();
+    if ('check-item|mark-item'.includes(definition.name)) {
+      const records = peekResourceDatabase('item');
+      record = records ? findResourceRecord(records, name) : null;
+    } else if ('mark-item-label'.includes(definition.name)) {
+      const records = peekResourceDatabase('item');
+      record = records ? findResourceRecord(records, name, 'label') : null;
+    } else if ('check-fluid|mark-fluid'.includes(definition.name)) {
+      const records = peekResourceDatabase('fluid');
+      record = records ? findResourceRecord(records, name) : null;
+    }
+    if (record) {
+      queriedArgs = snapshot.args.replace(name, record.localizedName)
+    }
+  }
+  
+  const args = queriedArgs || compactArgs(snapshot.args);
   if (!args) {
     return label;
   }
