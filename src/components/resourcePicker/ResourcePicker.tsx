@@ -73,6 +73,20 @@ export function createDefaultResourceFilters(): ResourceFilters {
   };
 }
 
+function ResourcePickerListSkeleton() {
+  return (
+    <div className="resource-picker-skeleton__list">
+      {Array.from({ length: 10 }).map((_, index) => (
+        <div key={index} className="resource-picker-skeleton__card">
+          <div className="skeleton skeleton--line skeleton--card-title" />
+          <div className="skeleton skeleton--line skeleton--card-subtitle" />
+          <div className="skeleton skeleton--line skeleton--card-detail" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function ResourcePickerSkeleton() {
   return (
     <div className="resource-picker-skeleton" aria-busy="true" aria-live="polite">
@@ -108,23 +122,7 @@ function ResourcePickerSkeleton() {
       </section>
 
       <section className="editor-card resource-picker-skeleton__panel resource-picker-skeleton__panel--results">
-        <div className="resource-picker-skeleton__header">
-          <div className="resource-picker-skeleton__title-block">
-            <div className="skeleton skeleton--line skeleton--wide" />
-            <div className="skeleton skeleton--line skeleton--long" />
-          </div>
-          <div className="skeleton skeleton--pill skeleton--small" />
-        </div>
-
-        <div className="resource-picker-skeleton__list">
-          {Array.from({ length: 10 }).map((_, index) => (
-            <div key={index} className="resource-picker-skeleton__card">
-              <div className="skeleton skeleton--line skeleton--card-title" />
-              <div className="skeleton skeleton--line skeleton--card-subtitle" />
-              <div className="skeleton skeleton--line skeleton--card-detail" />
-            </div>
-          ))}
-        </div>
+        <ResourcePickerListSkeleton/>
       </section>
     </div>
   );
@@ -356,6 +354,8 @@ export function ResourcePickerModal({ spec, currentValue, valueMode, onClose, on
                 <div className="empty-state empty-state--compact">结果计算失败。</div>
               ) : workerState.isCurrentDatasetReady && workerState.totalCount === 0 ? (
                 <div className="empty-state empty-state--compact">空空如也。</div>
+              ) : workerState.isCurrentDatasetReady && workerState.status === 'loading' ? (
+                <ResourcePickerListSkeleton/>
               ) : (
                 <ResourcePickerVirtualList
                   records={records}
