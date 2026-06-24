@@ -160,7 +160,6 @@ export function ResourcePickerModal({ spec, currentValue, valueMode, onClose, on
         : `${spec.kind}:${locale}:${valueMode}:${currentValue.trim().toLowerCase()}`,
     [currentValue, locale, selectedRecord, spec.kind, valueMode]
   );
-  const currentDisplayValue = selectedRecord ? formatResourceDisplay(selectedRecord) : currentValue.trim() || '（空）';
   const workerState = useResourcePickerWorkerQuery(spec.kind, locale, records, workerFilters);
   const filteredCount = workerState.isCurrentDatasetReady ? workerState.totalCount : 0;
   const isLoading = resourceStatus === 'idle' || resourceStatus === 'loading';
@@ -179,15 +178,6 @@ export function ResourcePickerModal({ spec, currentValue, valueMode, onClose, on
 
   const showSkeleton = isLoading || (!workerState.isCurrentDatasetReady && workerState.status !== 'error');
 
-  const resultHint =
-    workerState.status === 'error'
-      ? '结果计算失败。'
-      : workerState.isCurrentDatasetReady && workerState.status === 'loading'
-        ? '正在重新计算结果。'
-        : workerState.isCurrentDatasetReady
-          ? `当前共 ${filteredCount} 条结果。`
-          : '正在计算结果。';
-
   const resultCountLabel = workerState.isCurrentDatasetReady
     ? workerState.status === 'loading'
       ? `${filteredCount}/${records.length} · 计算中`
@@ -202,35 +192,26 @@ export function ResourcePickerModal({ spec, currentValue, valueMode, onClose, on
     <Modal
       open
       title={`选择${getResourceKindLabel(spec.kind)}`}
-      subtitle={`挑选一个你喜欢的${getResourceKindLabel(spec.kind)}`}
+      subtitle={currentStatusLabel + (selectedRecord ? ` · 匹配 ${formatResourceDisplay(selectedRecord)}` : '')}
       wide
       sheetClassName="modal-sheet--resource-picker"
       onClose={onClose}
       footer={
-        <button type="button" className="button button--filled" onClick={onClose}>
-          关闭
-        </button>
-      }
-    >
-      <div className="resource-picker-modal">
-        {fieldRow(
-          '当前输入',
-          <code className="logical-rule-editor__preview mono">{currentDisplayValue}</code>,
-          currentStatusLabel + (selectedRecord ? ` · 匹配 ${formatResourceDisplay(selectedRecord)}` : '')
-        )}
-
-        {fieldRow(
-          '语言',
+        <>
           <select className="input" value={locale} onChange={(event) => setLocale(event.target.value as ResourceLocale)}>
             {RESOURCE_LOCALE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
             ))}
-          </select>,
-          '当前只会在首次切换到某个语言时加载对应数据库。'
-        )}
-
+          </select>
+          <button type="button" className="button button--filled" onClick={onClose}>
+            关闭
+          </button>
+        </>
+      }
+    >
+      <div className="resource-picker-modal">
         {resourceStatus === 'error' ? <div className="form-error">{error || '数据库加载失败'}</div> : null}
 
         {showSkeleton ? (
@@ -241,11 +222,14 @@ export function ResourcePickerModal({ spec, currentValue, valueMode, onClose, on
               <div className="resource-picker-modal__section-header">
                 <div>
                   <h3 className="editor-card__title">筛选与排序</h3>
-                  <p className="resource-picker-modal__section-copy">{spec.sectionCopy}</p>
                 </div>
                 <div className="button-row">
-                  <button type="button" className="button button--tonal button--compact" onClick={resetFilters}>
-                    重置筛选
+                  <button type="button" 
+                    className="button button--tonal button--compact" 
+                    onClick={resetFilters}
+                    title='重置筛选'
+                  >
+                    {resultCountLabel}
                   </button>
                 </div>
               </div>
@@ -292,8 +276,7 @@ export function ResourcePickerModal({ spec, currentValue, valueMode, onClose, on
                   >
                     {filters.sortDirection === 'asc' ? '升序' : '降序'}
                   </button>
-                </div>,
-                resultHint
+                </div>
               )}
 
               {fieldRow(
@@ -342,14 +325,6 @@ export function ResourcePickerModal({ spec, currentValue, valueMode, onClose, on
             </section>
 
             <section className="editor-card resource-picker-modal__results">
-              <div className="resource-picker-modal__section-header">
-                <div>
-                  <h3 className="editor-card__title">结果列表</h3>
-                  <p className="resource-picker-modal__section-copy">挑选一个你喜欢的</p>
-                </div>
-                <div className="chip chip--soft">{resultCountLabel}</div>
-              </div>
-
               {workerState.status === 'error' && !workerState.isCurrentDatasetReady ? (
                 <div className="empty-state empty-state--compact">结果计算失败。</div>
               ) : workerState.isCurrentDatasetReady && workerState.totalCount === 0 ? (

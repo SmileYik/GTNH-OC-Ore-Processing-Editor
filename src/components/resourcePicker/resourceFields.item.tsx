@@ -198,7 +198,7 @@ export const ITEM_RESOURCE_PICKER_SPEC = {
   keyFieldLabel: '物品 ID',
   keyPlaceholder: '例如 minecraft:stone:0',
   localizedNamePlaceholder: '例如 铁锭',
-  sectionCopy: '按物品字段搜索、排序和过滤，可在上方切换语言。',
+  sectionCopy: '',
   createDefaultFilters: createDefaultResourceFilters,
   matchesSpecificFilters: matchesItemFilters,
   formatSubtitle: formatItemSubtitle,
