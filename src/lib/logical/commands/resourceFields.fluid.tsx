@@ -264,7 +264,7 @@ export const FLUID_RESOURCE_PICKER_SPEC = {
   keyFieldLabel: '流体 ID',
   keyPlaceholder: '例如 water',
   localizedNamePlaceholder: '例如 蒸汽',
-  sectionCopy: '按流体字段搜索、排序和过滤。',
+  sectionCopy: '按流体字段搜索、排序和过滤，可在上方切换语言。',
   createDefaultFilters: createDefaultResourceFilters,
   matchesSpecificFilters: matchesFluidFilters,
   formatSubtitle: formatFluidSubtitle,

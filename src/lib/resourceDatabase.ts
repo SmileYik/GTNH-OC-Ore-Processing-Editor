@@ -11,6 +11,7 @@ import {
 } from 'react';
 
 export type ResourceKind = 'item' | 'fluid';
+export type ResourceLocale = 'zh_CN' | 'en_US';
 
 interface ResourceBaseRecord {
   kind: ResourceKind;
@@ -51,10 +52,24 @@ const RESOURCE_FILE_NAMES: Record<ResourceKind, string> = {
   fluid: 'fluids.json'
 };
 
+export const RESOURCE_LOCALE_OPTIONS: Array<{ value: ResourceLocale; label: string }> = [
+  { value: 'zh_CN', label: '简体中文' },
+  { value: 'en_US', label: 'English (US)' }
+];
+
+export const DEFAULT_RESOURCE_LOCALE: ResourceLocale = 'zh_CN';
+
 const RESOURCE_KIND_LABELS: Record<ResourceKind, string> = {
   item: '物品',
   fluid: '流体'
 };
+
+const RESOURCE_LOCALE_LABELS: Record<ResourceLocale, string> = {
+  zh_CN: '简体中文',
+  en_US: 'English (US)'
+};
+
+const RESOURCE_LOCALE_SET = new Set<ResourceLocale>(RESOURCE_LOCALE_OPTIONS.map((option) => option.value));
 
 export interface ResourceDatabaseIndex {
   byKey: Map<string, ResourceRecord>;
@@ -76,18 +91,22 @@ interface ResourceDatabaseSliceState {
 }
 
 interface ResourceDatabaseState {
+  [locale: string]: ResourceDatabaseLocaleState;
+}
+
+interface ResourceDatabaseLocaleState {
   item: ResourceDatabaseSliceState;
   fluid: ResourceDatabaseSliceState;
 }
 
 type ResourceDatabaseAction =
-  | { type: 'request'; kind: ResourceKind }
-  | { type: 'success'; kind: ResourceKind; database: ResourceDatabaseEntry }
-  | { type: 'failure'; kind: ResourceKind; error: string };
+  | { type: 'request'; locale: ResourceLocale; kind: ResourceKind }
+  | { type: 'success'; locale: ResourceLocale; kind: ResourceKind; database: ResourceDatabaseEntry }
+  | { type: 'failure'; locale: ResourceLocale; kind: ResourceKind; error: string };
 
 interface ResourceDatabaseContextValue {
   state: ResourceDatabaseState;
-  ensureDatabase: (kind: ResourceKind) => Promise<ResourceDatabaseEntry>;
+  ensureDatabase: (kind: ResourceKind, locale?: ResourceLocale) => Promise<ResourceDatabaseEntry>;
 }
 
 const ResourceDatabaseContext = createContext<ResourceDatabaseContextValue | null>(null);
@@ -97,10 +116,20 @@ interface ResourceDatabaseCacheEntry {
   snapshot: ResourceDatabaseEntry | null;
 }
 
-const resourceDatabaseCache = new Map<ResourceKind, ResourceDatabaseCacheEntry>();
+const resourceDatabaseCache = new Map<ResourceLocale, Map<ResourceKind, ResourceDatabaseCacheEntry>>();
 
-function createResourceDatabaseSlice(kind: ResourceKind): ResourceDatabaseSliceState {
-  const snapshot = peekResourceDatabase(kind);
+function normalizeResourceLocale(locale: string | undefined): ResourceLocale {
+  const compactLocale = (locale ?? DEFAULT_RESOURCE_LOCALE).trim().replace('-', '_') as ResourceLocale;
+  return RESOURCE_LOCALE_SET.has(compactLocale) ? compactLocale : DEFAULT_RESOURCE_LOCALE;
+}
+
+export function getResourceLocaleLabel(locale: string): string {
+  const normalizedLocale = normalizeResourceLocale(locale);
+  return RESOURCE_LOCALE_LABELS[normalizedLocale];
+}
+
+function createResourceDatabaseSlice(locale: ResourceLocale, kind: ResourceKind): ResourceDatabaseSliceState {
+  const snapshot = peekResourceDatabase(kind, locale);
 
   if (snapshot) {
     return {
@@ -117,18 +146,36 @@ function createResourceDatabaseSlice(kind: ResourceKind): ResourceDatabaseSliceS
   };
 }
 
-function createInitialResourceDatabaseState(): ResourceDatabaseState {
+function createEmptyResourceDatabaseLocaleState(locale: ResourceLocale): ResourceDatabaseLocaleState {
   return {
-    item: createResourceDatabaseSlice('item'),
-    fluid: createResourceDatabaseSlice('fluid')
+    item: createResourceDatabaseSlice(locale, 'item'),
+    fluid: createResourceDatabaseSlice(locale, 'fluid')
   };
+}
+
+function createInitialResourceDatabaseState(): ResourceDatabaseState {
+  const nextState: ResourceDatabaseState = {};
+
+  for (const [locale] of resourceDatabaseCache.entries()) {
+    nextState[locale] = createEmptyResourceDatabaseLocaleState(locale);
+  }
+
+  return nextState;
+}
+
+function getResourceDatabaseLocaleState(
+  state: ResourceDatabaseState,
+  locale: ResourceLocale
+): ResourceDatabaseLocaleState {
+  return state[locale] ?? createEmptyResourceDatabaseLocaleState(locale);
 }
 
 function resourceDatabaseReducer(
   state: ResourceDatabaseState,
   action: ResourceDatabaseAction
 ): ResourceDatabaseState {
-  const current = state[action.kind];
+  const currentLocaleState = getResourceDatabaseLocaleState(state, action.locale);
+  const current = currentLocaleState[action.kind];
 
   if (action.type === 'request') {
     if (current.status === 'loading' || current.status === 'ready') {
@@ -137,10 +184,13 @@ function resourceDatabaseReducer(
 
     return {
       ...state,
-      [action.kind]: {
-        status: 'loading',
-        database: null,
-        error: ''
+      [action.locale]: {
+        ...currentLocaleState,
+        [action.kind]: {
+          status: 'loading',
+          database: null,
+          error: ''
+        }
       }
     };
   }
@@ -152,10 +202,13 @@ function resourceDatabaseReducer(
 
     return {
       ...state,
-      [action.kind]: {
-        status: 'ready',
-        database: action.database,
-        error: ''
+      [action.locale]: {
+        ...currentLocaleState,
+        [action.kind]: {
+          status: 'ready',
+          database: action.database,
+          error: ''
+        }
       }
     };
   }
@@ -166,10 +219,13 @@ function resourceDatabaseReducer(
 
   return {
     ...state,
-    [action.kind]: {
-      status: 'error',
-      database: null,
-      error: action.error
+    [action.locale]: {
+      ...currentLocaleState,
+      [action.kind]: {
+        status: 'error',
+        database: null,
+        error: action.error
+      }
     }
   };
 }
@@ -195,24 +251,26 @@ export function ResourceDatabaseProvider({ children }: { children: ReactNode }) 
     [dispatch]
   );
 
-  const ensureDatabase = useCallback((kind: ResourceKind) => {
-    const cacheEntry = getResourceDatabaseCacheEntry(kind);
+  const ensureDatabase = useCallback((kind: ResourceKind, locale: ResourceLocale = DEFAULT_RESOURCE_LOCALE) => {
+    const normalizedLocale = normalizeResourceLocale(locale);
+    const cacheEntry = getResourceDatabaseCacheEntry(kind, normalizedLocale);
 
     if (cacheEntry.snapshot) {
-      dispatchIfMounted({ type: 'success', kind, database: cacheEntry.snapshot });
+      dispatchIfMounted({ type: 'success', locale: normalizedLocale, kind, database: cacheEntry.snapshot });
       return Promise.resolve(cacheEntry.snapshot);
     }
 
-    dispatchIfMounted({ type: 'request', kind });
+    dispatchIfMounted({ type: 'request', locale: normalizedLocale, kind });
 
-    return getResourceDatabasePromise(kind)
+    return getResourceDatabasePromise(kind, normalizedLocale)
       .then((database) => {
-        dispatchIfMounted({ type: 'success', kind, database });
+        dispatchIfMounted({ type: 'success', locale: normalizedLocale, kind, database });
         return database;
       })
       .catch((error: unknown) => {
         dispatchIfMounted({
           type: 'failure',
+          locale: normalizedLocale,
           kind,
           error: error instanceof Error ? error.message : String(error)
         });
@@ -231,7 +289,14 @@ export function ResourceDatabaseProvider({ children }: { children: ReactNode }) 
   return createElement(ResourceDatabaseContext.Provider, { value: contextValue }, children);
 }
 
-export function useResourceDatabase(kind: ResourceKind): ResourceDatabaseSliceState {
+export function useResourceDatabase(
+  kind: ResourceKind,
+  locale: ResourceLocale = DEFAULT_RESOURCE_LOCALE
+): ResourceDatabaseSliceState {
+  return useResourceDatabaseWithLocale(kind, locale);
+}
+
+function useResourceDatabaseWithLocale(kind: ResourceKind, locale: ResourceLocale): ResourceDatabaseSliceState {
   const context = useContext(ResourceDatabaseContext);
 
   if (!context) {
@@ -239,16 +304,24 @@ export function useResourceDatabase(kind: ResourceKind): ResourceDatabaseSliceSt
   }
 
   const { state, ensureDatabase } = context;
-  const slice = state[kind];
+  const normalizedLocale = normalizeResourceLocale(locale);
+  const slice = state[normalizedLocale]?.[kind] ?? createEmptyResourceDatabaseLocaleState(normalizedLocale)[kind];
 
   useEffect(() => {
-    void ensureDatabase(kind);
-  }, [ensureDatabase, kind]);
+    void ensureDatabase(kind, normalizedLocale);
+  }, [ensureDatabase, kind, normalizedLocale]);
 
   return slice;
 }
 
-export function usePreloadResourceDatabase(kind: ResourceKind): void {
+export function usePreloadResourceDatabase(
+  kind: ResourceKind,
+  locale: ResourceLocale = DEFAULT_RESOURCE_LOCALE
+): void {
+  usePreloadResourceDatabaseWithLocale(kind, locale);
+}
+
+function usePreloadResourceDatabaseWithLocale(kind: ResourceKind, locale: ResourceLocale): void {
   const context = useContext(ResourceDatabaseContext);
 
   if (!context) {
@@ -256,10 +329,11 @@ export function usePreloadResourceDatabase(kind: ResourceKind): void {
   }
 
   const { ensureDatabase } = context;
+  const normalizedLocale = normalizeResourceLocale(locale);
 
   useEffect(() => {
-    void ensureDatabase(kind);
-  }, [ensureDatabase, kind]);
+    void ensureDatabase(kind, normalizedLocale);
+  }, [ensureDatabase, kind, normalizedLocale]);
 }
 
 function normalizeBaseUrl(baseUrl: string): string {
@@ -270,9 +344,9 @@ function normalizeBaseUrl(baseUrl: string): string {
   return baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
 }
 
-function getResourceFileUrl(kind: ResourceKind): string {
+function getResourceFileUrl(kind: ResourceKind, locale: ResourceLocale): string {
   const baseUrl = normalizeBaseUrl(import.meta.env.BASE_URL || '/');
-  return `${baseUrl}static/database/${RESOURCE_FILE_NAMES[kind]}`;
+  return `${baseUrl}static/database/${locale}/${RESOURCE_FILE_NAMES[kind]}`;
 }
 
 function toNumber(value: unknown, fallback = 0): number {
@@ -404,19 +478,21 @@ function normalizeFluidRecord(key: string, raw: Record<string, unknown>): FluidR
   };
 }
 
-async function fetchResourceDatabase(kind: ResourceKind): Promise<ResourceRecord[]> {
+async function fetchResourceDatabase(kind: ResourceKind, locale: ResourceLocale): Promise<ResourceRecord[]> {
   if (typeof window === 'undefined') {
     return [];
   }
 
-  const response = await fetch(getResourceFileUrl(kind), {
+  const response = await fetch(getResourceFileUrl(kind, locale), {
     headers: {
       Accept: 'application/json'
     }
   });
 
   if (!response.ok) {
-    throw new Error(`加载${RESOURCE_KIND_LABELS[kind]}数据库失败: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `加载${RESOURCE_LOCALE_LABELS[locale]} ${RESOURCE_KIND_LABELS[kind]}数据库失败: ${response.status} ${response.statusText}`
+    );
   }
 
   const payload = (await response.json()) as Record<string, Record<string, unknown>>;
@@ -455,14 +531,25 @@ function createResourceIndex(records: ResourceRecord[]): ResourceDatabaseIndex {
   };
 }
 
-function getResourceDatabaseCacheEntry(kind: ResourceKind): ResourceDatabaseCacheEntry {
-  let cacheEntry = resourceDatabaseCache.get(kind);
+function getLocaleResourceDatabaseCache(locale: ResourceLocale): Map<ResourceKind, ResourceDatabaseCacheEntry> {
+  let localeCache = resourceDatabaseCache.get(locale);
+  if (!localeCache) {
+    localeCache = new Map<ResourceKind, ResourceDatabaseCacheEntry>();
+    resourceDatabaseCache.set(locale, localeCache);
+  }
+
+  return localeCache;
+}
+
+function getResourceDatabaseCacheEntry(kind: ResourceKind, locale: ResourceLocale): ResourceDatabaseCacheEntry {
+  const localeCache = getLocaleResourceDatabaseCache(locale);
+  let cacheEntry = localeCache.get(kind);
   if (!cacheEntry) {
     cacheEntry = {
       pending: null,
       snapshot: null
     };
-    resourceDatabaseCache.set(kind, cacheEntry);
+    localeCache.set(kind, cacheEntry);
   }
 
   return cacheEntry;
@@ -475,15 +562,15 @@ function createResourceDatabaseSnapshot(records: ResourceRecord[]): ResourceData
   };
 }
 
-function getResourceDatabasePromise(kind: ResourceKind): Promise<ResourceDatabaseEntry> {
-  const cacheEntry = getResourceDatabaseCacheEntry(kind);
+function getResourceDatabasePromise(kind: ResourceKind, locale: ResourceLocale): Promise<ResourceDatabaseEntry> {
+  const cacheEntry = getResourceDatabaseCacheEntry(kind, locale);
 
   if (cacheEntry.snapshot) {
     return Promise.resolve(cacheEntry.snapshot);
   }
 
   if (!cacheEntry.pending) {
-    cacheEntry.pending = fetchResourceDatabase(kind)
+    cacheEntry.pending = fetchResourceDatabase(kind, locale)
       .then((records) => {
         const snapshot = createResourceDatabaseSnapshot(records);
         cacheEntry.snapshot = snapshot;
@@ -499,12 +586,18 @@ function getResourceDatabasePromise(kind: ResourceKind): Promise<ResourceDatabas
   return cacheEntry.pending;
 }
 
-export async function loadResourceDatabase(kind: ResourceKind): Promise<ResourceDatabaseEntry> {
-  return getResourceDatabasePromise(kind);
+export async function loadResourceDatabase(
+  kind: ResourceKind,
+  locale: ResourceLocale = DEFAULT_RESOURCE_LOCALE
+): Promise<ResourceDatabaseEntry> {
+  return getResourceDatabasePromise(kind, normalizeResourceLocale(locale));
 }
 
-export function peekResourceDatabase(kind: ResourceKind): ResourceDatabaseEntry | null {
-  return getResourceDatabaseCacheEntry(kind).snapshot;
+export function peekResourceDatabase(
+  kind: ResourceKind,
+  locale: ResourceLocale = DEFAULT_RESOURCE_LOCALE
+): ResourceDatabaseEntry | null {
+  return getResourceDatabaseCacheEntry(kind, normalizeResourceLocale(locale)).snapshot;
 }
 
 export function getResourceKindLabel(kind: ResourceKind): string {
@@ -583,10 +676,16 @@ export function findResourceRecord(
   return null;
 }
 
-export async function loadResourceRecords(kind: ResourceKind): Promise<ResourceRecord[]> {
-  return loadResourceDatabase(kind).then((database) => database.records);
+export async function loadResourceRecords(
+  kind: ResourceKind,
+  locale: ResourceLocale = DEFAULT_RESOURCE_LOCALE
+): Promise<ResourceRecord[]> {
+  return loadResourceDatabase(kind, locale).then((database) => database.records);
 }
 
-export function peekResourceRecords(kind: ResourceKind): ResourceRecord[] | null {
-  return peekResourceDatabase(kind)?.records ?? null;
+export function peekResourceRecords(
+  kind: ResourceKind,
+  locale: ResourceLocale = DEFAULT_RESOURCE_LOCALE
+): ResourceRecord[] | null {
+  return peekResourceDatabase(kind, locale)?.records ?? null;
 }

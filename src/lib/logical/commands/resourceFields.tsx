@@ -12,13 +12,16 @@ import { Modal } from '../../../components/Modal';
 import { fieldRow } from '../../../components/editors/shared';
 import type { LogicalCommandDefinition } from '../LogicalRules';
 import {
+  DEFAULT_RESOURCE_LOCALE,
+  getResourceLocaleLabel,
   findResourceRecord,
   formatResourceDisplay,
   getResourceKindLabel,
   getResourceSelectionValue,
-  usePreloadResourceDatabase,
   useResourceDatabase,
+  RESOURCE_LOCALE_OPTIONS,
   type ResourceKind,
+  type ResourceLocale,
   type ResourceRecord,
   type ResourceSelectionMode
 } from '../../resourceDatabase';
@@ -437,7 +440,8 @@ interface ResourcePickerModalProps {
 
 export function ResourcePickerModal({ spec, currentValue, valueMode, onClose, onSelect }: ResourcePickerModalProps) {
   const [filters, setFilters] = useState<ResourceFilters>(() => spec.createDefaultFilters());
-  const { status, database, error } = useResourceDatabase(spec.kind);
+  const [locale, setLocale] = useState<ResourceLocale>(DEFAULT_RESOURCE_LOCALE);
+  const { status, database, error } = useResourceDatabase(spec.kind, locale);
   const records = database?.records ?? [];
   const deferredQuery = useDeferredValue(filters.query);
   const selectedRecord = useMemo(() => (database ? findResourceRecord(database, currentValue, valueMode) : null), [
@@ -449,10 +453,10 @@ export function ResourcePickerModal({ spec, currentValue, valueMode, onClose, on
   const isLoading = status === 'idle' || status === 'loading';
   const currentStatusLabel =
     isLoading
-      ? '数据库加载中'
+      ? `数据库加载中 · ${getResourceLocaleLabel(locale)}`
       : status === 'error'
-        ? '数据库加载失败'
-        : `数据库已加载 ${records.length} 条`;
+        ? `数据库加载失败 · ${getResourceLocaleLabel(locale)}`
+        : `数据库已加载 ${records.length} 条 · ${getResourceLocaleLabel(locale)}`;
 
   const sortedRecords = useMemo(() => {
     return [...records].sort((left, right) =>
@@ -553,6 +557,22 @@ export function ResourcePickerModal({ spec, currentValue, valueMode, onClose, on
           '当前输入',
           <code className="logical-rule-editor__preview mono">{currentDisplayValue}</code>,
           currentStatusLabel + (selectedRecord ? ` · 匹配 ${formatResourceDisplay(selectedRecord)}` : '')
+        )}
+
+        {fieldRow(
+          '语言',
+          <select
+            className="input"
+            value={locale}
+            onChange={(event) => setLocale(event.target.value as ResourceLocale)}
+          >
+            {RESOURCE_LOCALE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>,
+          '当前只会在首次切换到某个语言时加载对应数据库。'
         )}
 
         {status === 'error' ? <div className="form-error">{error || '数据库加载失败'}</div> : null}
@@ -713,7 +733,6 @@ function ResourcePickerControl({
   actionLabel = '从列表选择'
 }: ResourcePickerControlProps) {
   const [open, setOpen] = useState(false);
-  usePreloadResourceDatabase(spec.kind);
 
   return (
     <div className="resource-picker-control">
