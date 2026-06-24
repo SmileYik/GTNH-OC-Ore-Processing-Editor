@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   formatResourceDisplay,
+  findResourceRecord,
   getResourceSelectionValue,
   type ResourceRecord,
   type ResourceSelectionMode
@@ -100,6 +101,7 @@ export interface ResourcePickerVirtualListProps {
   recordIndices: Uint32Array;
   currentValue: string;
   valueMode: ResourceSelectionMode;
+  selectionScrollKey: string;
   onSelect: (nextValue: string, record: ResourceRecord) => void;
   formatSubtitle: (record: ResourceRecord) => string;
   formatDetail: (record: ResourceRecord) => string;
@@ -110,6 +112,7 @@ export function ResourcePickerVirtualList({
   recordIndices,
   currentValue,
   valueMode,
+  selectionScrollKey,
   onSelect,
   formatSubtitle,
   formatDetail
@@ -119,10 +122,31 @@ export function ResourcePickerVirtualList({
     VIRTUAL_ROW_HEIGHT,
     VIRTUAL_OVERSCAN
   );
+  const appliedScrollKeyRef = useRef<string | null>(null);
+  const selectedRecord = findResourceRecord(records, currentValue, valueMode);
+  const selectedRecordIndex = selectedRecord ? records.indexOf(selectedRecord) : -1;
+  const selectedFilteredIndex =
+    selectedRecordIndex >= 0 ? recordIndices.indexOf(selectedRecordIndex) : -1;
 
-  useEffect(() => {
-    containerRef.current?.scrollTo({ top: 0 });
-  }, [containerRef, recordIndices]);
+  useLayoutEffect(() => {
+    const element = containerRef.current;
+    if (!element) {
+      return;
+    }
+
+    if (appliedScrollKeyRef.current === selectionScrollKey) {
+      return;
+    }
+
+    appliedScrollKeyRef.current = selectionScrollKey;
+
+    const targetTop =
+      selectedFilteredIndex >= 0
+        ? Math.max(0, selectedFilteredIndex * VIRTUAL_ROW_HEIGHT - Math.floor((element.clientHeight - VIRTUAL_ROW_HEIGHT) / 2))
+        : 0;
+
+    element.scrollTo({ top: targetTop });
+  }, [containerRef, selectionScrollKey, selectedFilteredIndex]);
 
   const visibleIndices = Array.from(recordIndices.slice(startIndex, endIndex));
 

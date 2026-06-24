@@ -620,12 +620,14 @@ export function getResourceSelectionValue(record: ResourceRecord, mode: Resource
   }
 }
 
-function isResourceDatabaseEntry(value: ResourceRecord[] | ResourceDatabaseEntry): value is ResourceDatabaseEntry {
+function isResourceDatabaseEntry(
+  value: readonly ResourceRecord[] | ResourceDatabaseEntry
+): value is ResourceDatabaseEntry {
   return !Array.isArray(value);
 }
 
 export function findResourceRecord(
-  records: ResourceRecord[] | ResourceDatabaseEntry,
+  records: readonly ResourceRecord[] | ResourceDatabaseEntry,
   value: string,
   mode: ResourceSelectionMode = 'id'
 ): ResourceRecord | null {

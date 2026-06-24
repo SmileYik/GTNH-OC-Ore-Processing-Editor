@@ -155,6 +155,13 @@ export function ResourcePickerModal({ spec, currentValue, valueMode, onClose, on
     () => (database ? findResourceRecord(database, currentValue, valueMode) : null),
     [currentValue, database, valueMode]
   );
+  const selectionScrollKey = useMemo(
+    () =>
+      selectedRecord
+        ? `${spec.kind}:${locale}:${valueMode}:${selectedRecord.key}`
+        : `${spec.kind}:${locale}:${valueMode}:${currentValue.trim().toLowerCase()}`,
+    [currentValue, locale, selectedRecord, spec.kind, valueMode]
+  );
   const currentDisplayValue = selectedRecord ? formatResourceDisplay(selectedRecord) : currentValue.trim() || '（空）';
   const workerState = useResourcePickerWorkerQuery(spec.kind, locale, records, workerFilters);
   const filteredCount = workerState.isCurrentDatasetReady ? workerState.totalCount : 0;
@@ -355,6 +362,7 @@ export function ResourcePickerModal({ spec, currentValue, valueMode, onClose, on
                   recordIndices={workerState.indices}
                   currentValue={currentValue}
                   valueMode={valueMode}
+                  selectionScrollKey={selectionScrollKey}
                   onSelect={onSelect}
                   formatSubtitle={spec.formatSubtitle}
                   formatDetail={spec.formatDetail}
