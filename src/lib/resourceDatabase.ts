@@ -310,7 +310,11 @@ export function getResourceSelectionValue(record: ResourceRecord, mode: Resource
     return record.localizedName.trim() || record.key;
   }
 
-  return record.key;
+  if (record.kind === 'item') {
+    return `${record.modId.trim()}:${record.internalName.trim()}:${record.itemDamage}`;
+  } else {
+    return record.internalName.trim()
+  }
 }
 
 function isResourceDatabaseEntry(value: ResourceRecord[] | ResourceDatabaseEntry): value is ResourceDatabaseEntry {
