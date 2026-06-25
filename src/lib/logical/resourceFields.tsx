@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { type LogicalCommandDefinition } from './LogicalRules';
 import { ResourcePickerControl, type ResourcePickerSpec } from '../../components/resourcePicker';
 import { peekAndFindResourceRecord, type ResourceSelectionMode } from '../resourceDatabase';
-import { LanguageConfig, loadConfig } from '../../config';
 
 type ComparisonOperator = '<' | '<=' | '==' | '>=' | '>' | '!=';
 
@@ -90,7 +89,6 @@ export function createResourceSelectorLogicalCommandArgsField(
     return (
       <LogicalCommandFieldPanel label={label} hint={hint}>
         <ResourcePickerControl
-          userConfig={userConfig}
           spec={spec}
           value={value}
           onChange={onChange}
@@ -129,7 +127,6 @@ export function createResourceComparisonLogicalCommandArgsField(
           <div className="resource-comparison__resource">
             <span className="resource-comparison__label">{spec.kind === 'item' ? '物品' : '流体'}</span>
             <ResourcePickerControl
-              userConfig={userConfig}
               spec={spec}
               value={parsed.resource}
               onChange={(nextValue) => handleChange({ resource: nextValue })}

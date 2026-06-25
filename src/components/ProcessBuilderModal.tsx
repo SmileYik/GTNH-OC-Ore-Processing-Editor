@@ -2,7 +2,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import type { MineralProcess } from '../lib/OreConfigManager';
 import { findMineralName, StepPath } from './dashboard/common';
 import { Modal } from './Modal';
-import { Config, CONFIG_LANGUAGE_OPTIONS, loadConfig } from '../config';
+import { CONFIG_LANGUAGE_OPTIONS, useConfig } from '../config';
 
 interface FlowNode {
   id: string;
@@ -31,7 +31,6 @@ interface ProcessBuilderModalProps {
   initialSteps: string[];
   availableSteps: string[];
   existingProcesses: MineralProcess[];
-  userConfig: Config;
   onClose: () => void;
   onSave: (next: MineralProcess, options?: ProcessSaveOptions) => void;
 }
@@ -91,10 +90,10 @@ export function ProcessBuilderModal({
   initialSteps,
   availableSteps,
   existingProcesses,
-  userConfig,
   onClose,
   onSave
 }: ProcessBuilderModalProps) {
+  const userConfig = useConfig();
   const [mineral, setMineral] = useState(initialMineral);
   const [nodes, setNodes] = useState<FlowNode[]>([]);
   const [error, setError] = useState('');
@@ -252,7 +251,14 @@ export function ProcessBuilderModal({
               placeholder="例如：Coal"
             />
           </div>
-          <span className="field-hint">{mineral ? `当前输入矿物为：${findMineralName(mineral, userConfig.lang)}` : `请输入矿物名称, 当前游戏语言为: ${CONFIG_LANGUAGE_OPTIONS.filter(it => it.value === userConfig.lang.game)[0].label}`}</span>
+          <span className="field-hint">
+            {mineral
+              ? `当前输入矿物为：${findMineralName(mineral, userConfig.lang)}`
+              : `请输入矿物名称, 当前游戏语言为: ${
+                  CONFIG_LANGUAGE_OPTIONS.find((option) => option.value === userConfig.lang.game)?.label ??
+                  userConfig.lang.game
+                }`}
+          </span>
         </label>
 
         <div className="process-builder__meta">

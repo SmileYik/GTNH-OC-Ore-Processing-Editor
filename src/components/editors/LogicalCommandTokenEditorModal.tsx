@@ -7,12 +7,11 @@ import {
 } from '../../lib/logical/LogicalRules';
 import { Modal } from '../Modal';
 import { fieldRow } from './shared';
-import { Config } from '../../config';
+import { useConfig } from '../../config';
 
 interface LogicalCommandTokenEditorModalProps {
   open: boolean;
   token: LogicalExpressionCommandToken | null;
-  userConfig: Config;
   onClose: () => void;
   onSave: (next: { name: string; args: string }) => void;
 }
@@ -20,10 +19,10 @@ interface LogicalCommandTokenEditorModalProps {
 export function LogicalCommandTokenEditorModal({
   open,
   token,
-  userConfig,
   onClose,
   onSave
 }: LogicalCommandTokenEditorModalProps) {
+  const userConfig = useConfig();
   const [name, setName] = useState(token?.name ?? '');
   const [args, setArgs] = useState(token?.args ?? '');
   const [error, setError] = useState('');

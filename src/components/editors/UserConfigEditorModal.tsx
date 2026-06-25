@@ -1,20 +1,28 @@
 import { useEffect, useState } from 'react';
-import { type Config, CONFIG_LANGUAGE_OPTIONS, cloneConfig, createDefaultConfig } from '../../config';
+import {
+  type Config,
+  CONFIG_LANGUAGE_OPTIONS,
+  cloneConfig,
+  createDefaultConfig,
+  useConfig,
+  useConfigDispatch
+} from '../../config';
 import { Modal } from '../Modal';
 import { fieldRow } from './shared';
 
 interface UserConfigEditorModalProps {
   open: boolean;
-  initial: Config;
   onClose: () => void;
-  onSave: (next: Config) => void;
+  onSave?: (next: Config) => void;
 }
 
 function createDraftFromConfig(config: Config): Config {
   return cloneConfig(config);
 }
 
-export function UserConfigEditorModal({ open, initial, onClose, onSave }: UserConfigEditorModalProps) {
+export function UserConfigEditorModal({ open, onClose, onSave }: UserConfigEditorModalProps) {
+  const initial = useConfig();
+  const dispatch = useConfigDispatch();
   const [draft, setDraft] = useState<Config>(() => createDraftFromConfig(initial));
   const [error, setError] = useState('');
 
@@ -46,7 +54,7 @@ export function UserConfigEditorModal({ open, initial, onClose, onSave }: UserCo
       return;
     }
 
-    onSave({
+    const nextConfig: Config = {
       lang: {
         game,
         display
@@ -55,7 +63,14 @@ export function UserConfigEditorModal({ open, initial, onClose, onSave }: UserCo
         autoLoadFluids: draft.database.autoLoadFluids,
         autoLoadItems: draft.database.autoLoadItems
       }
+    };
+
+    dispatch({
+      type: 'replace',
+      payload: nextConfig
     });
+    onSave?.(nextConfig);
+    onClose();
   };
 
   return (

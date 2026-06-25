@@ -30,7 +30,7 @@ import {
   upsertLogicalCommandCacheSnapshot,
   validateLogicalExpression
 } from '../../lib/logical/LogicalRules';
-import { Config } from '../../config';
+import { type Config, useConfig } from '../../config';
 
 type DragSource =
   | {
@@ -86,7 +86,6 @@ interface LogicalRuleDetailModalProps {
   mode: 'create' | 'edit';
   groupRole: string;
   initialRule: FilterRuleEntry;
-  userConfig: Config;
   onClose: () => void;
   onSave: (next: FilterRuleEntry) => void;
 }
@@ -328,10 +327,10 @@ export function LogicalRuleDetailModal({
   mode,
   groupRole,
   initialRule,
-  userConfig,
   onClose,
   onSave
 }: LogicalRuleDetailModalProps) {
+  const userConfig = useConfig();
   const [ruleDraft, setRuleDraft] = useState<FilterRuleEntry>(createEmptyRuleDraft());
   const [expressionTokens, setExpressionTokens] = useState<LogicalExpressionToken[]>([]);
   const [selectedTokenId, setSelectedTokenId] = useState<string | null>(null);
@@ -1370,7 +1369,6 @@ export function LogicalRuleDetailModal({
       ) : null}
 
       <LogicalCommandTokenInfoModal
-        userConfig={userConfig}
         open={Boolean(commandInfoCommandToken)}
         token={commandInfoCommandToken}
         cacheState={cacheState}
@@ -1378,7 +1376,6 @@ export function LogicalRuleDetailModal({
       />
 
       <LogicalCommandTokenEditorModal
-        userConfig={userConfig}
         open={Boolean(editingCommandToken)}
         token={editingCommandToken}
         onClose={() => setCommandEditorTokenId(null)}

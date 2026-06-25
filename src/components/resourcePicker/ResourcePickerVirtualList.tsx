@@ -8,7 +8,7 @@ import {
   peekAndFindResourceRecordsById,
   ResourceLocale
 } from '../../lib/resourceDatabase';
-import { Config, loadConfig } from '../../config';
+import { useConfig } from '../../config';
 
 const VIRTUAL_ROW_HEIGHT = 96;
 const VIRTUAL_OVERSCAN = 6;
@@ -108,7 +108,6 @@ export interface ResourcePickerVirtualListProps {
   onSelect: (nextValue: string, record: ResourceRecord) => void;
   formatSubtitle: (record: ResourceRecord) => string;
   formatDetail: (record: ResourceRecord) => string;
-  userConfig: Config;
 }
 
 export function ResourcePickerVirtualList({
@@ -119,9 +118,9 @@ export function ResourcePickerVirtualList({
   selectionScrollKey,
   onSelect,
   formatSubtitle,
-  formatDetail,
-  userConfig,
+  formatDetail
 }: ResourcePickerVirtualListProps) {
+  const userConfig = useConfig();
   const { containerRef, startIndex, endIndex, topSpacerHeight, bottomSpacerHeight } = useVirtualWindow(
     recordIndices.length,
     VIRTUAL_ROW_HEIGHT,

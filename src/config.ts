@@ -1,3 +1,13 @@
+import {
+  createElement,
+  createContext,
+  useContext,
+  useEffect,
+  useReducer,
+  type Dispatch,
+  type ReactNode
+} from 'react';
+
 export interface Config {
   lang: LanguageConfig;
   database: DatabaseConfig;
@@ -47,6 +57,18 @@ export const DEFAULT_CONFIG: Config = {
     autoLoadItems: false
   }
 };
+
+export type ConfigAction =
+  | {
+      type: 'replace';
+      payload: Config;
+    }
+  | {
+      type: 'reset';
+    };
+
+const ConfigStateContext = createContext<Config | null>(null);
+const ConfigDispatchContext = createContext<Dispatch<ConfigAction> | null>(null);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -117,7 +139,15 @@ export function parseConfig(text: string): Config {
   return normalizeConfig(JSON.parse(text));
 }
 
-export function loadConfig(): Config {
+export function configReducer(state: Config, action: ConfigAction): Config {
+  if (action.type === 'reset') {
+    return createDefaultConfig();
+  }
+
+  return normalizeConfig(action.payload);
+}
+
+function loadStoredConfig(): Config {
   if (typeof window === 'undefined') {
     return createDefaultConfig();
   }
@@ -140,7 +170,7 @@ export function loadConfig(): Config {
   }
 }
 
-export function saveConfig(config: Config): void {
+function saveStoredConfig(config: Config): void {
   if (typeof window === 'undefined') {
     return;
   }
@@ -152,14 +182,36 @@ export function saveConfig(config: Config): void {
   }
 }
 
-export function clearStoredConfig(): void {
-  if (typeof window === 'undefined') {
-    return;
+export function ConfigProvider({ children }: { children: ReactNode }) {
+  const [config, dispatch] = useReducer(configReducer, undefined, loadStoredConfig);
+
+  useEffect(() => {
+    saveStoredConfig(config);
+  }, [config]);
+
+  return createElement(
+    ConfigStateContext.Provider,
+    { value: config },
+    createElement(ConfigDispatchContext.Provider, { value: dispatch }, children)
+  );
+}
+
+export function useConfig(): Config {
+  const config = useContext(ConfigStateContext);
+
+  if (!config) {
+    throw new Error('useConfig must be used within ConfigProvider');
   }
 
-  try {
-    window.localStorage.removeItem(CONFIG_STORAGE_KEY);
-  } catch {
-    // Ignore storage cleanup failures.
+  return config;
+}
+
+export function useConfigDispatch(): Dispatch<ConfigAction> {
+  const dispatch = useContext(ConfigDispatchContext);
+
+  if (!dispatch) {
+    throw new Error('useConfigDispatch must be used within ConfigProvider');
   }
+
+  return dispatch;
 }

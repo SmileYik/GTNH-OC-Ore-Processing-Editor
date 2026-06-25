@@ -24,7 +24,6 @@ import {
 import { useResourcePickerWorkerQuery } from './resourcePickerWorkerClient';
 import type { ResourceFilters } from './resourcePickerQuery';
 import { ResourcePickerVirtualList } from './ResourcePickerVirtualList';
-import { Config, LanguageConfig } from '../../config';
 
 export interface ResourcePickerSpec {
   kind: ResourceKind;
@@ -133,12 +132,11 @@ interface ResourcePickerModalProps {
   spec: ResourcePickerSpec;
   currentValue: string;
   valueMode: ResourceSelectionMode;
-  userConfig: Config;
   onClose: () => void;
   onSelect: (nextValue: string, record: ResourceRecord) => void;
 }
 
-export function ResourcePickerModal({ spec, currentValue, valueMode, userConfig, onClose, onSelect }: ResourcePickerModalProps) {
+export function ResourcePickerModal({ spec, currentValue, valueMode, onClose, onSelect }: ResourcePickerModalProps) {
   const [filters, setFilters] = useState<ResourceFilters>(() => spec.createDefaultFilters());
   const [locale, setLocale] = useState<ResourceLocale>(DEFAULT_RESOURCE_LOCALE);
   const { status: resourceStatus, database, error } = useResourceDatabase(spec.kind, locale);
@@ -335,7 +333,6 @@ export function ResourcePickerModal({ spec, currentValue, valueMode, userConfig,
                 <ResourcePickerListSkeleton/>
               ) : (
                 <ResourcePickerVirtualList
-                  userConfig={userConfig}
                   records={records}
                   recordIndices={workerState.indices}
                   currentValue={currentValue}
@@ -361,7 +358,6 @@ interface ResourcePickerControlProps {
   valueMode: ResourceSelectionMode;
   placeholder: string;
   actionLabel?: string;
-  userConfig: Config;
 }
 
 export function ResourcePickerControl({
@@ -370,7 +366,6 @@ export function ResourcePickerControl({
   onChange,
   valueMode,
   placeholder,
-  userConfig,
   actionLabel = '从列表选择'
 }: ResourcePickerControlProps) {
   const [open, setOpen] = useState(false);
@@ -391,7 +386,6 @@ export function ResourcePickerControl({
 
       {open ? (
         <ResourcePickerModal
-          userConfig={userConfig}
           spec={spec}
           currentValue={value}
           valueMode={valueMode}

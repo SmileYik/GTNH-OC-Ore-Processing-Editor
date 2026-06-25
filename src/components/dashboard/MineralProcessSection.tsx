@@ -2,12 +2,11 @@ import { useMemo, useState } from 'react';
 import type { MineralProcess } from '../../lib/OreConfigManager';
 import { findMineralName, Section, StepPath } from './common';
 import type { ProcessSortMode, SortDirection } from './sortTypes';
-import { Config } from '../../config';
+import { useConfig } from '../../config';
 import { type ResourceLocale, useResourceDatabaseCacheRevision } from '../../lib/resourceDatabase';
 
 interface MineralProcessSectionProps {
   processes: MineralProcess[];
-  userConfig: Config;
   onAddProcess: () => void;
   onEditProcess: (process: MineralProcess) => void;
   onDeleteProcess: (mineral: string) => void;
@@ -17,11 +16,11 @@ const COLLATOR = new Intl.Collator('zh-Hans-CN', { numeric: true, sensitivity: '
 
 export function MineralProcessSection({
   processes,
-  userConfig,
   onAddProcess,
   onEditProcess,
   onDeleteProcess
 }: MineralProcessSectionProps) {
+  const userConfig = useConfig();
   const [search, setSearch] = useState('');
   const [sortMode, setSortMode] = useState<ProcessSortMode>('length');
   const [sortDirection, setSortDirection] = useState<SortDirection>('default');

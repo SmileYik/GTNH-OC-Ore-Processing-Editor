@@ -3,8 +3,8 @@ import { cloneFilterGroups, formatFilterRuleLabel, type FilterGroup, type Filter
 import { Modal } from '../Modal';
 import { fieldRow } from './shared';
 import { ITEM_RESOURCE_PICKER_SPEC, ResourcePickerModal } from '../resourcePicker';
-import { findResourceRecord, peekAndFindResourceRecord, peekResourceRecords, ResourceLocale } from '../../lib/resourceDatabase';
-import { Config, loadConfig } from '../../config';
+import { peekAndFindResourceRecord } from '../../lib/resourceDatabase';
+import { type Config, useConfig } from '../../config';
 import { useNameFilledFilterGroups } from '../dashboard/common';
 
 type Selection =
@@ -31,7 +31,6 @@ interface ListEditorModalProps {
   title: string;
   groups: FilterGroup[];
   availableRoles: string[];
-  userConfig: Config;
   onClose: () => void;
   onSave: (groups: FilterGroup[]) => void;
 }
@@ -84,7 +83,6 @@ function RuleEditor({value, onChange, onEnterDown, userConfig}: RuleEditorProps)
       </button>
       {open ? (
         <ResourcePickerModal
-          userConfig={userConfig}
           spec={ITEM_RESOURCE_PICKER_SPEC}
           currentValue={value}
           valueMode={'id'}
@@ -104,10 +102,10 @@ export function ListEditorModal({
   title,
   groups,
   availableRoles,
-  userConfig,
   onClose,
   onSave
 }: ListEditorModalProps) {
+  const userConfig = useConfig();
   const [draft, setDraft] = useState<FilterGroup[]>([]);
   const [selected, setSelected] = useState<Selection>(null);
   const [newGroupRole, setNewGroupRole] = useState('');

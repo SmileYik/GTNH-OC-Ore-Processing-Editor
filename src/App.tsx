@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { type Config, loadConfig, saveConfig } from './config';
+import { type Config, useConfig } from './config';
 import {
   buildProcessReverse,
   collectAvailableSteps,
@@ -106,7 +106,7 @@ function createInitialFileName(): string {
 export function App() {
   const [config, setConfig] = useState<OreConfig>(() => createInitialConfig());
   const [fileName, setFileName] = useState<string>(() => createInitialFileName());
-  const [userConfig, setUserConfig] = useState<Config>(() => loadConfig());
+  const userConfig = useConfig();
   const [editor, setEditor] = useState<EditorState>(null);
   const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const [topbarHeight, setTopbarHeight] = useState(0);
@@ -152,10 +152,6 @@ export function App() {
       // LocalStorage may be unavailable in some private modes.
     }
   }, [config, fileName]);
-
-  useEffect(() => {
-    saveConfig(userConfig);
-  }, [userConfig]);
 
   useEffect(() => {
     let cancelled = false;
@@ -257,9 +253,7 @@ export function App() {
     }
   };
 
-  const handleUserConfigSave = (next: Config) => {
-    setUserConfig(next);
-    setUserConfigOpen(false);
+  const handleUserConfigSave = (_next: Config) => {
     showNotice('用户配置已保存', 'success');
   };
 
@@ -473,7 +467,6 @@ export function App() {
       {notice ? <Notice tone={notice.tone} floating>{notice.text}</Notice> : null}
 
       <Dashboard
-        userConfig={userConfig}
         processes={processes}
         onAddProcess={openProcessAdd}
         onEditProcess={openProcessEdit}
@@ -525,7 +518,6 @@ export function App() {
       {editor?.type === "process" ? (
         <ProcessBuilderModal
           open
-          userConfig={userConfig}
           mode={editor.mode}
           initialMineral={editor.initialMineral}
           initialSteps={editor.initialSteps}
@@ -539,7 +531,6 @@ export function App() {
       {editor?.type === "list" ? (
         <ListEditorModal
           open
-          userConfig={userConfig}
           title={editor.kind === 'idWhitelist' ? '白名单' : '黑名单'}
           groups={editor.kind === 'idWhitelist' ? idWhitelist : idBlacklist}
           availableRoles={roleNames}
@@ -551,7 +542,6 @@ export function App() {
       {editor?.type === 'logicalRules' ? (
         <LogicalRuleEditorModal
           open
-          userConfig={userConfig}
           groups={logicalRules}
           availableRoles={roleNames}
           onClose={closeEditor}
@@ -568,7 +558,6 @@ export function App() {
 
       <UserConfigEditorModal
         open={userConfigOpen}
-        initial={userConfig}
         onClose={() => setUserConfigOpen(false)}
         onSave={handleUserConfigSave}
       />

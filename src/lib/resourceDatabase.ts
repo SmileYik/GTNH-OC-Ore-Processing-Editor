@@ -10,7 +10,7 @@ import {
   useSyncExternalStore,
   type ReactNode
 } from 'react';
-import { LanguageConfig } from '../config';
+import type { LanguageConfig } from '../config';
 
 export type ResourceKind = 'item' | 'fluid';
 export type ResourceLocale = 'zh_CN' | 'en_US';

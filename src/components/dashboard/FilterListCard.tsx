@@ -1,4 +1,3 @@
-import { Config } from '../../config';
 import type { FilterGroup } from '../../lib/OreConfigManager';
 import { Section, TreeRoot } from './common';
 
@@ -6,11 +5,10 @@ interface FilterListCardProps {
   title: string;
   kindLabel: string;
   groups: FilterGroup[];
-  userConfig: Config;
   onEdit: () => void;
 }
 
-export function FilterListCard({ title, kindLabel, groups, onEdit, userConfig }: FilterListCardProps) {
+export function FilterListCard({ title, kindLabel, groups, onEdit }: FilterListCardProps) {
   return (
     <Section
       title={title}
@@ -22,7 +20,7 @@ export function FilterListCard({ title, kindLabel, groups, onEdit, userConfig }:
         </button>
       }
     >
-      <TreeRoot title={title} groups={groups} userConfig={userConfig} />
+      <TreeRoot title={title} groups={groups} />
     </Section>
   );
 }

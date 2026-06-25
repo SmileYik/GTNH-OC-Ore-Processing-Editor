@@ -11,13 +11,12 @@ import {
 } from '../../lib/logical/LogicalRules';
 import { Modal } from '../Modal';
 import { fieldRow } from './shared';
-import { Config } from '../../config';
+import { useConfig } from '../../config';
 
 interface LogicalCommandTokenInfoModalProps {
   open: boolean;
   token: LogicalExpressionCommandToken | null;
   cacheState: LogicalCommandCacheState;
-  userConfig: Config;
   onClose: () => void;
 }
 
@@ -25,9 +24,9 @@ export function LogicalCommandTokenInfoModal({
   open,
   token,
   cacheState,
-  userConfig,
   onClose
 }: LogicalCommandTokenInfoModalProps) {
+  const userConfig = useConfig();
   const selectedDefinition = useMemo(
     () => (token ? getLogicalCommandDefinition(token.name) : null),
     [token]

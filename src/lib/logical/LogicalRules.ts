@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { LOGICAL_COMMAND_DEFINITIONS } from './commands';
 import { peekAndFindResourceRecord, ResourceKind } from '../resourceDatabase';
-import { Config, LanguageConfig, loadConfig } from '../../config';
+import type { Config, LanguageConfig } from '../../config';
 
 export const LOGICAL_COMMAND_NAME_PATTERN = /^[a-zA-Z0-9_%\-]+$/;
 

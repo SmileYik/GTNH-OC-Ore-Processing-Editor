@@ -1,6 +1,6 @@
 import { Fragment, useMemo, type ReactNode } from 'react';
 import { FilterRuleEntry, formatFilterRuleLabel, type FilterGroup } from '../../lib/OreConfigManager';
-import { Config, LanguageConfig } from '../../config';
+import { type LanguageConfig, useConfig } from '../../config';
 import { peekAndFindResourceRecord, type ResourceLocale, useResourceDatabaseCacheRevision } from '../../lib/resourceDatabase';
 
 export function Section({
@@ -114,7 +114,8 @@ export function useNameFilledFilterGroups(groups: FilterGroup[], lang: LanguageC
   return gs;
 }
 
-export function TreeRoot({ title, groups, userConfig }: { title: string; groups: FilterGroup[], userConfig: Config }) {
+export function TreeRoot({ title, groups }: { title: string; groups: FilterGroup[] }) {
+  const userConfig = useConfig();
   const displayRevision = useResourceDatabaseCacheRevision('item', userConfig.lang.display as ResourceLocale);
 
   const visualGroups = useMemo(() => {

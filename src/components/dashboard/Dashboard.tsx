@@ -1,4 +1,3 @@
-import { Config } from '../../config';
 import type { OreConfig } from '../../lib/OreConfig';
 import type { FilterGroup, InterfaceEntry, MineralProcess, ProcessReverseGroup, RoleEntry } from '../../lib/OreConfigManager';
 import { ExportSection } from './ExportSection';
@@ -32,7 +31,6 @@ interface DashboardProps {
   onEditLogicalRules: () => void;
   config: OreConfig;
   fileName: string;
-  userConfig: Config;
 }
 
 export function Dashboard({
@@ -58,13 +56,11 @@ export function Dashboard({
   onEditBlacklist,
   onEditLogicalRules,
   config,
-  fileName,
-  userConfig,
+  fileName
 }: DashboardProps) {
   return (
     <main className="dashboard">
       <MineralProcessSection
-        userConfig={userConfig}
         processes={processes}
         onAddProcess={onAddProcess}
         onEditProcess={onEditProcess}
@@ -72,7 +68,6 @@ export function Dashboard({
       />
 
       <ProcessReverseSection
-        userConfig={userConfig}
         groups={reverseGroups}
         onReuseProcess={onReuseProcess}
       />
@@ -95,21 +90,18 @@ export function Dashboard({
       />
 
       <FilterListCard
-        userConfig={userConfig}
         title="白名单"
         kindLabel="按职责管理规则，支持启用状态和注释，显示时优先展示注释。"
         groups={idWhitelist}
         onEdit={onEditWhitelist}
       />
       <FilterListCard
-        userConfig={userConfig}
         title="黑名单"
         kindLabel="按职责管理规则，支持启用状态和注释，显示时优先展示注释。"
         groups={idBlacklist}
         onEdit={onEditBlacklist}
       />
       <FilterListCard
-        userConfig={userConfig}
         title="逻辑规则"
         kindLabel="按角色管理逻辑表达式，支持拖拽命令单元、运算符和括号。"
         groups={logicalRules}
