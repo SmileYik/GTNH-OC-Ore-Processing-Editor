@@ -14,7 +14,6 @@ import {
   formatLogicalCommandCacheItem,
   formatLogicalCommandSnapshot,
   formatLogicalCommandTooltip,
-  getLogicalCommandDefinition,
   getLogicalCommandDefinitionsByCategory,
   lexLogicalExpression,
   loadLogicalCommandCacheState,
@@ -96,15 +95,6 @@ function createEmptyRuleDraft(): FilterRuleEntry {
     enable: true,
     comments: ''
   };
-}
-
-function truncateText(text: string, maxLength: number): string {
-  const trimmed = text.trim();
-  if (trimmed.length <= maxLength) {
-    return trimmed;
-  }
-
-  return `${trimmed.slice(0, maxLength)}...`;
 }
 
 function readExpressionTokens(ruleText: string): { tokens: LogicalExpressionToken[]; error: string } {
@@ -421,12 +411,6 @@ export function LogicalRuleDetailModal({
   }, [tokenContextMenu]);
 
   const selectedToken = expressionTokens.find((token) => token.id === selectedTokenId) ?? null;
-  const selectedTokenDefinition =
-    selectedToken && selectedToken.type === 'command' ? getLogicalCommandDefinition(selectedToken.name) : null;
-  const selectedCacheItem =
-    selectedToken && selectedToken.type === 'command' && selectedToken.cacheId
-      ? findLogicalCommandCacheEntry(cacheState, selectedToken.cacheId)
-      : null;
   const commandEditorToken = commandEditorTokenId
     ? expressionTokens.find((token) => token.id === commandEditorTokenId) ?? null
     : null;
