@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { type Config, loadConfig, saveConfig } from './config';
 import {
   buildProcessReverse,
   collectAvailableSteps,
@@ -30,17 +31,48 @@ import {
   LogicalRuleEditorModal,
   ListEditorModal,
   RoleEditorModal,
+  UserConfigEditorModal,
   type EditorState
 } from './components/editors';
 import { ProcessBuilderModal } from './components/ProcessBuilderModal';
 import { Notice, type NoticeMessage, useAutoDismissNotice } from './components/Notice';
 import { Dashboard } from './components/dashboard/Dashboard';
+import { loadResourceDatabase, type ResourceKind, type ResourceLocale } from './lib/resourceDatabase';
 
 const STORAGE_KEY = 'oc-ore-processing-editor.config.v1';
 const STORAGE_NAME_KEY = 'oc-ore-processing-editor.config-name.v1';
 
+interface ResourceBootstrapRequest {
+  kind: ResourceKind;
+  locale: ResourceLocale;
+}
+
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function createResourceBootstrapRequests(config: Config): ResourceBootstrapRequest[] {
+  const requests: ResourceBootstrapRequest[] = [];
+
+  if (!config.database.autoLoadFluids && !config.database.autoLoadItems) {
+    return requests;
+  }
+
+  const locales = new Set<ResourceLocale>([config.lang.game as ResourceLocale, config.lang.display as ResourceLocale]);
+
+  if (config.database.autoLoadItems) {
+    for (const locale of locales) {
+      requests.push({ kind: 'item', locale });
+    }
+  }
+
+  if (config.database.autoLoadFluids) {
+    for (const locale of locales) {
+      requests.push({ kind: 'fluid', locale });
+    }
+  }
+
+  return requests;
 }
 
 function createInitialConfig(): OreConfig {
@@ -74,14 +106,18 @@ function createInitialFileName(): string {
 export function App() {
   const [config, setConfig] = useState<OreConfig>(() => createInitialConfig());
   const [fileName, setFileName] = useState<string>(() => createInitialFileName());
+  const [userConfig, setUserConfig] = useState<Config>(() => loadConfig());
   const [editor, setEditor] = useState<EditorState>(null);
   const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const [topbarHeight, setTopbarHeight] = useState(0);
+  const [startupReady, setStartupReady] = useState(false);
+  const [startupError, setStartupError] = useState('');
   const [importConfigOpen, setImportConfigOpen] = useState(false);
+  const [userConfigOpen, setUserConfigOpen] = useState(false);
   const topbarRef = useRef<HTMLElement | null>(null);
-  const showNotice = (text: string, tone: NoticeMessage['tone'] = 'info') => {
+  const showNotice = useCallback((text: string, tone: NoticeMessage['tone'] = 'info') => {
     setNotice({ tone, text });
-  };
+  }, []);
   const roles = useMemo(() => getRoleEntries(config), [config]);
   const interfaces = useMemo(() => getInterfaceEntries(config), [config]);
   const processes = useMemo(() => getProcessEntries(config), [config]);
@@ -102,6 +138,7 @@ export function App() {
     }),
     [idBlacklist, idWhitelist, interfaces, processes, roles]
   );
+  const startupRequests = useMemo(() => createResourceBootstrapRequests(userConfig), [userConfig]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -115,6 +152,42 @@ export function App() {
       // LocalStorage may be unavailable in some private modes.
     }
   }, [config, fileName]);
+
+  useEffect(() => {
+    saveConfig(userConfig);
+  }, [userConfig]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (startupRequests.length === 0) {
+      setStartupReady(true);
+      setStartupError('');
+      return undefined;
+    }
+
+    setStartupReady(false);
+    setStartupError('');
+
+    void Promise.all(startupRequests.map(({ kind, locale }) => loadResourceDatabase(kind, locale)))
+      .then(() => {
+        if (!cancelled) {
+          setStartupReady(true);
+        }
+      })
+      .catch((error: unknown) => {
+        if (cancelled) {
+          return;
+        }
+
+        setStartupError(getErrorMessage(error));
+        setStartupReady(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [startupRequests]);
 
   useAutoDismissNotice(notice, setNotice, 4000);
 
@@ -149,6 +222,26 @@ export function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    if (!startupReady) {
+      return;
+    }
+
+    document.getElementById('app-preloader')?.remove();
+  }, [startupReady]);
+
+  useEffect(() => {
+    if (!startupError) {
+      return;
+    }
+
+    showNotice(`资源数据库预加载失败: ${startupError}`, 'error');
+  }, [showNotice, startupError]);
+
   const closeEditor = () => setEditor(null);
 
   const handleImportText = (text: string, nextFileName: string) => {
@@ -162,6 +255,12 @@ export function App() {
     } catch (error) {
       showNotice(`导入失败: ${getErrorMessage(error)}`, 'error');
     }
+  };
+
+  const handleUserConfigSave = (next: Config) => {
+    setUserConfig(next);
+    setUserConfigOpen(false);
+    showNotice('用户配置已保存', 'success');
   };
 
   const handleResetSample = () => {
@@ -350,9 +449,17 @@ export function App() {
             <span className="chip chip--meta">职责 {stats.roles}</span>
             <span className="chip chip--meta">输出口 {stats.interfaces}</span>
             <span className="chip chip--meta">矿物 {stats.processes}</span>
+            <span className="chip chip--info">语言 {userConfig.lang.game} / {userConfig.lang.display}</span>
+            <span className="chip chip--info">
+              数据库 {userConfig.database.autoLoadItems ? '物品自动' : '物品手动'} ·{' '}
+              {userConfig.database.autoLoadFluids ? '流体自动' : '流体手动'}
+            </span>
           </div>
 
           <div className="button-row button-row--wrap">
+            <button type="button" className="button button--filled" onClick={() => setUserConfigOpen(true)}>
+              用户配置
+            </button>
             <button type="button" className="button button--tonal" onClick={() => setImportConfigOpen(true)}>
               导入配置
             </button>
@@ -366,6 +473,7 @@ export function App() {
       {notice ? <Notice tone={notice.tone} floating>{notice.text}</Notice> : null}
 
       <Dashboard
+        userConfig={userConfig}
         processes={processes}
         onAddProcess={openProcessAdd}
         onEditProcess={openProcessEdit}
@@ -417,6 +525,7 @@ export function App() {
       {editor?.type === "process" ? (
         <ProcessBuilderModal
           open
+          userConfig={userConfig}
           mode={editor.mode}
           initialMineral={editor.initialMineral}
           initialSteps={editor.initialSteps}
@@ -430,6 +539,7 @@ export function App() {
       {editor?.type === "list" ? (
         <ListEditorModal
           open
+          userConfig={userConfig}
           title={editor.kind === 'idWhitelist' ? '白名单' : '黑名单'}
           groups={editor.kind === 'idWhitelist' ? idWhitelist : idBlacklist}
           availableRoles={roleNames}
@@ -453,6 +563,13 @@ export function App() {
         initialFileName={fileName}
         onClose={() => setImportConfigOpen(false)}
         onImport={handleImportText}
+      />
+
+      <UserConfigEditorModal
+        open={userConfigOpen}
+        initial={userConfig}
+        onClose={() => setUserConfigOpen(false)}
+        onSave={handleUserConfigSave}
       />
     </div>
   );

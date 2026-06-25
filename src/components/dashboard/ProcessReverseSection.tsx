@@ -2,15 +2,17 @@ import { useMemo, useState } from 'react';
 import { formatProcessSignature, type ProcessReverseGroup } from '../../lib/OreConfigManager';
 import { MineralTags, Section } from './common';
 import type { ReverseSortMode, SortDirection } from './sortTypes';
+import { Config } from '../../config';
 
 interface ProcessReverseSectionProps {
   groups: ProcessReverseGroup[];
+  userConfig: Config;
   onReuseProcess: (steps: string[]) => void;
 }
 
 const COLLATOR = new Intl.Collator('zh-Hans-CN', { numeric: true, sensitivity: 'base' });
 
-export function ProcessReverseSection({ groups, onReuseProcess }: ProcessReverseSectionProps) {
+export function ProcessReverseSection({ groups, userConfig, onReuseProcess }: ProcessReverseSectionProps) {
   const [search, setSearch] = useState('');
   const [sortMode, setSortMode] = useState<ReverseSortMode>('length');
   const [sortDirection, setSortDirection] = useState<SortDirection>('default');
@@ -125,7 +127,7 @@ export function ProcessReverseSection({ groups, onReuseProcess }: ProcessReverse
                 </div>
               </div>
               <div className="record-card__scroll">
-                <MineralTags minerals={group.minerals} />
+                <MineralTags minerals={group.minerals} lang={userConfig.lang} />
               </div>
             </article>
           ))

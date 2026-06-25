@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { LOGICAL_COMMAND_DEFINITIONS } from './commands';
-import { findResourceRecord, peekResourceDatabase } from '../resourceDatabase';
+import { peekAndFindResourceRecord, ResourceKind } from '../resourceDatabase';
+import { Config, LanguageConfig, loadConfig } from '../../config';
 
 export const LOGICAL_COMMAND_NAME_PATTERN = /^[a-zA-Z0-9_%\-]+$/;
 
@@ -10,6 +11,7 @@ export type LogicalParen = '(' | ')';
 export interface LogicalCommandArgsFieldProps {
   value: string;
   onChange: (nextValue: string) => void;
+  userConfig: Config;
 }
 
 export interface LogicalCommandDefinition {
@@ -211,24 +213,24 @@ export function cloneLogicalExpressionTokens(tokens: LogicalExpressionToken[]): 
   return tokens.map((token) => cloneLogicalExpressionToken(token));
 }
 
-export function formatLogicalCommandSnapshot(snapshot: LogicalCommandSnapshot): string {
+export function formatLogicalCommandSnapshot(snapshot: LogicalCommandSnapshot, langConfig: LanguageConfig): string {
   const definition = getLogicalCommandDefinition(snapshot.name);
   const label = definition?.label ?? snapshot.name;
 
   let queriedArgs = null;
   if (definition) {
-    let record = null;
     const name = snapshot.args.split(/>=|<=|==|~=|!=|>|</)[0].trim();
+    let kind: ResourceKind = 'item';
+    let isKey = true;
     if ('check-item|mark-item'.includes(definition.name)) {
-      const records = peekResourceDatabase('item');
-      record = records ? findResourceRecord(records, name) : null;
-    } else if ('mark-item-label'.includes(definition.name)) {
-      const records = peekResourceDatabase('item');
-      record = records ? findResourceRecord(records, name, 'label') : null;
+      kind = 'item';
+    } else if ('check-item-label'.includes(definition.name)) {
+      kind = 'item';
+      isKey = false;
     } else if ('check-fluid|mark-fluid'.includes(definition.name)) {
-      const records = peekResourceDatabase('fluid');
-      record = records ? findResourceRecord(records, name) : null;
+      kind = 'fluid'
     }
+    const record = peekAndFindResourceRecord(kind, isKey, name, langConfig);
     if (record) {
       queriedArgs = snapshot.args.replace(name, record.localizedName)
     }
@@ -446,8 +448,8 @@ export function createLogicalCommandCacheEntry(
   };
 }
 
-export function formatLogicalCommandCacheItem(entry: LogicalCommandCacheEntry): string {
-  return formatLogicalCommandSnapshot(entry);
+export function formatLogicalCommandCacheItem(entry: LogicalCommandCacheEntry, langConfig: LanguageConfig): string {
+  return formatLogicalCommandSnapshot(entry, langConfig);
 }
 
 export function cloneLogicalCommandCacheEntry(entry: LogicalCommandCacheEntry): LogicalCommandCacheEntry {
@@ -695,6 +697,6 @@ export function createLogicalCommandCacheFromToken(
   );
 }
 
-export function formatLogicalCommandCacheLabel(entry: LogicalCommandCacheEntry): string {
-  return formatLogicalCommandSnapshot(entry);
+export function formatLogicalCommandCacheLabel(entry: LogicalCommandCacheEntry, langConfig: LanguageConfig): string {
+  return formatLogicalCommandSnapshot(entry, langConfig);
 }

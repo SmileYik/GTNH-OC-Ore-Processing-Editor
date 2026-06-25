@@ -2,6 +2,7 @@ export { RoleEditorModal } from './RoleEditorModal';
 export { InterfaceEditorModal } from './InterfaceEditorModal';
 export { ListEditorModal } from './ListEditorModal';
 export { LogicalRuleEditorModal } from './LogicalRuleEditorModal';
+export { UserConfigEditorModal } from './UserConfigEditorModal';
 export type { RoleEditorState } from './RoleEditorModal';
 export type { InterfaceEditorState } from './InterfaceEditorModal';
 export type { ListEditorState } from './ListEditorModal';

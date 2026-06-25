@@ -1,10 +1,13 @@
 import { useMemo, useState } from 'react';
 import type { MineralProcess } from '../../lib/OreConfigManager';
-import { Section, StepPath } from './common';
+import { findMineralName, Section, StepPath } from './common';
 import type { ProcessSortMode, SortDirection } from './sortTypes';
+import { Config } from '../../config';
+import { type ResourceLocale, useResourceDatabaseCacheRevision } from '../../lib/resourceDatabase';
 
 interface MineralProcessSectionProps {
   processes: MineralProcess[];
+  userConfig: Config;
   onAddProcess: () => void;
   onEditProcess: (process: MineralProcess) => void;
   onDeleteProcess: (mineral: string) => void;
@@ -14,6 +17,7 @@ const COLLATOR = new Intl.Collator('zh-Hans-CN', { numeric: true, sensitivity: '
 
 export function MineralProcessSection({
   processes,
+  userConfig,
   onAddProcess,
   onEditProcess,
   onDeleteProcess
@@ -56,6 +60,17 @@ export function MineralProcessSection({
       return sortDirection === 'asc' ? result : -result;
     });
   }, [filteredProcesses, sortDirection, sortMode]);
+
+  const displayRevision = useResourceDatabaseCacheRevision('item', userConfig.lang.display as ResourceLocale);
+  const gameRevision = useResourceDatabaseCacheRevision('item', userConfig.lang.game as ResourceLocale);
+  const visibleProcessesWithNames = useMemo(
+    () =>
+      visibleProcesses.map((process) => ({
+        process,
+        displayMineral: findMineralName(process.mineral, userConfig.lang)
+      })),
+    [gameRevision, displayRevision, userConfig.lang.display, userConfig.lang.game, visibleProcesses]
+  );
 
   const nextSortDirection: SortDirection =
     sortDirection === 'default' ? 'asc' : sortDirection === 'asc' ? 'desc' : 'default';
@@ -104,14 +119,14 @@ export function MineralProcessSection({
       }
     >
       <div className="scroll-stack">
-        {visibleProcesses.length === 0 ? (
+        {visibleProcessesWithNames.length === 0 ? (
           <div className="empty-state">没有匹配的矿物流程。</div>
         ) : (
-          visibleProcesses.map((process) => (
+          visibleProcessesWithNames.map(({ process, displayMineral }) => (
             <article className="record-card" key={process.mineral}>
               <div className="record-card__header">
                 <div>
-                  <h3 className="record-card__title">{process.mineral}</h3>
+                  <h3 className="record-card__title">{displayMineral}</h3>
                   <p className="record-card__meta">{process.steps.length} 个步骤</p>
                 </div>
                 <div className="button-row">

@@ -4,8 +4,11 @@ import {
   findResourceRecord,
   getResourceSelectionValue,
   type ResourceRecord,
-  type ResourceSelectionMode
+  type ResourceSelectionMode,
+  peekAndFindResourceRecordsById,
+  ResourceLocale
 } from '../../lib/resourceDatabase';
+import { Config, loadConfig } from '../../config';
 
 const VIRTUAL_ROW_HEIGHT = 96;
 const VIRTUAL_OVERSCAN = 6;
@@ -105,6 +108,7 @@ export interface ResourcePickerVirtualListProps {
   onSelect: (nextValue: string, record: ResourceRecord) => void;
   formatSubtitle: (record: ResourceRecord) => string;
   formatDetail: (record: ResourceRecord) => string;
+  userConfig: Config;
 }
 
 export function ResourcePickerVirtualList({
@@ -115,7 +119,8 @@ export function ResourcePickerVirtualList({
   selectionScrollKey,
   onSelect,
   formatSubtitle,
-  formatDetail
+  formatDetail,
+  userConfig,
 }: ResourcePickerVirtualListProps) {
   const { containerRef, startIndex, endIndex, topSpacerHeight, bottomSpacerHeight } = useVirtualWindow(
     recordIndices.length,
@@ -159,20 +164,22 @@ export function ResourcePickerVirtualList({
         if (!record) {
           return null;
         }
+        const gameRecord = peekAndFindResourceRecordsById(record.kind, record.key, userConfig.lang.game as ResourceLocale, record);
 
         const isSelected = matchesSelectedValue(record, currentValue, valueMode);
-        const selectionValue = getResourceSelectionValue(record, valueMode);
+        const selectionValue = getResourceSelectionValue(gameRecord, valueMode);
+
         let title = record.displayName;
         if ('tooltip' in record) {
           title += '\n\n' + record.tooltip;
         }
-
+        
         return (
           <button
             key={record.key}
             type="button"
             className={`resource-picker-modal__result${isSelected ? ' is-selected' : ''}`}
-            onClick={() => onSelect(selectionValue, record)}
+            onClick={() => onSelect(selectionValue, gameRecord)}
             title={title}
           >
             <span className="resource-picker-modal__result-title">{formatResourceDisplay(record)}</span>

@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { cloneFilterGroups, formatFilterRuleLabel, type FilterGroup, type FilterRuleEntry } from '../../lib/OreConfigManager';
 import { Modal } from '../Modal';
 import { fieldRow } from './shared';
 import { ITEM_RESOURCE_PICKER_SPEC, ResourcePickerModal } from '../resourcePicker';
-import { findResourceRecord, peekResourceRecords } from '../../lib/resourceDatabase';
+import { findResourceRecord, peekAndFindResourceRecord, peekResourceRecords, ResourceLocale } from '../../lib/resourceDatabase';
+import { Config, loadConfig } from '../../config';
+import { useNameFilledFilterGroups } from '../dashboard/common';
 
 type Selection =
   | {
@@ -21,13 +23,15 @@ type Selection =
 interface RuleEditorProps {
   value: string;
   onChange: (value: FilterRuleEntry) => void;
-  onEnterDown: () => void
+  onEnterDown: () => void,
+  userConfig: Config
 }
 interface ListEditorModalProps {
   open: boolean;
   title: string;
   groups: FilterGroup[];
   availableRoles: string[];
+  userConfig: Config;
   onClose: () => void;
   onSave: (groups: FilterGroup[]) => void;
 }
@@ -53,10 +57,9 @@ function cloneRuleDraft(rule: FilterRuleEntry): FilterRuleEntry {
   };
 }
 
-function RuleEditor({value, onChange, onEnterDown}: RuleEditorProps) {
+function RuleEditor({value, onChange, onEnterDown, userConfig}: RuleEditorProps) {
   const [open, setOpen] = useState(false);
-  const records = peekResourceRecords('item');
-  const matchedItem = records ? findResourceRecord(records, value) : ""
+  const matchedItem = peekAndFindResourceRecord('item', true, value, userConfig.lang);
 
   return (
     <div className="resource-picker-control__row">
@@ -81,6 +84,7 @@ function RuleEditor({value, onChange, onEnterDown}: RuleEditorProps) {
       </button>
       {open ? (
         <ResourcePickerModal
+          userConfig={userConfig}
           spec={ITEM_RESOURCE_PICKER_SPEC}
           currentValue={value}
           valueMode={'id'}
@@ -100,6 +104,7 @@ export function ListEditorModal({
   title,
   groups,
   availableRoles,
+  userConfig,
   onClose,
   onSave
 }: ListEditorModalProps) {
@@ -110,6 +115,10 @@ export function ListEditorModal({
   const [newRuleDraft, setNewRuleDraft] = useState<FilterRuleEntry>(createEmptyRuleDraft());
   const [ruleDraft, setRuleDraft] = useState<FilterRuleEntry>(createEmptyRuleDraft());
   const [error, setError] = useState('');
+
+  const nameFilledDraft = useMemo(() => {
+    return useNameFilledFilterGroups(draft, userConfig.lang);
+  }, [draft, userConfig.lang])
 
   useEffect(() => {
     if (!open) {
@@ -409,10 +418,10 @@ export function ListEditorModal({
 
           <div className="tree-root">
             <div className="tree-root__title">{title}</div>
-            {draft.length === 0 ? (
+            {nameFilledDraft.length === 0 ? (
               <div className="empty-state empty-state--compact">暂无职责组</div>
             ) : (
-              draft.map((group, groupIndex) => {
+              nameFilledDraft.map((group, groupIndex) => {
                 const groupActive = selected?.kind === 'group' && selected.index === groupIndex;
                 return (
                   <section
@@ -495,6 +504,7 @@ export function ListEditorModal({
               )}
               <RuleEditor
                 value={newRuleDraft.rule}
+                userConfig={userConfig}
                 onChange={(value) => {
                   setNewRuleDraft((current) => ({ ...current, rule: value.rule || current.rule, comments: value.comments || current.comments }));
                 }}
@@ -543,6 +553,7 @@ export function ListEditorModal({
               <h3 className="editor-card__title">规则</h3>
               <RuleEditor
                 value={ruleDraft.rule}
+                userConfig={userConfig}
                 onChange={(value) => {
                   setRuleDraft((current) => ({ ...current, rule: value.rule || current.rule, comments: value.comments || current.comments }));
                 }}

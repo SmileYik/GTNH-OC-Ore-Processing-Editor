@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import { type LogicalCommandDefinition } from './LogicalRules';
 import { ResourcePickerControl, type ResourcePickerSpec } from '../../components/resourcePicker';
-import { findResourceRecord, peekResourceDatabase, type ResourceSelectionMode } from '../resourceDatabase';
+import { peekAndFindResourceRecord, type ResourceSelectionMode } from '../resourceDatabase';
+import { LanguageConfig, loadConfig } from '../../config';
 
 type ComparisonOperator = '<' | '<=' | '==' | '>=' | '>' | '!=';
 
@@ -83,13 +84,13 @@ export function createResourceSelectorLogicalCommandArgsField(
   hint: string,
   valueMode: ResourceSelectionMode = 'id'
 ): LogicalCommandDefinition['renderArgsField'] {
-
-  return ({ value, onChange }) => {
-    const records = peekResourceDatabase(spec.kind);
-    const record = records ? findResourceRecord(records, value) : null;
+  return ({ value, onChange, userConfig }) => {
+    const record = peekAndFindResourceRecord(spec.kind, valueMode === 'id', label, userConfig.lang)
+    
     return (
       <LogicalCommandFieldPanel label={label} hint={hint}>
         <ResourcePickerControl
+          userConfig={userConfig}
           spec={spec}
           value={value}
           onChange={onChange}
@@ -110,7 +111,7 @@ export function createResourceComparisonLogicalCommandArgsField(
   hint: string,
   valueMode: ResourceSelectionMode = 'id'
 ): LogicalCommandDefinition['renderArgsField'] {
-  return ({ value, onChange }) => {
+  return ({ value, onChange, userConfig }) => {
     const parsed = parseComparisonExpression(value);
     const handleChange = (next: { resource?: string; comparator?: ComparisonOperator; amount?: string }) => {
       const resource = next.resource ?? parsed.resource;
@@ -120,8 +121,7 @@ export function createResourceComparisonLogicalCommandArgsField(
       onChange(formatComparisonExpression(resource, comparator, amount));
     };
 
-    const records = peekResourceDatabase(spec.kind);
-    const record = records ? findResourceRecord(records, parsed.resource) : null;
+    const record = peekAndFindResourceRecord(spec.kind, valueMode === 'id', parsed.resource, userConfig.lang);
 
     return (
       <LogicalCommandFieldPanel label={label} hint={hint}>
@@ -129,6 +129,7 @@ export function createResourceComparisonLogicalCommandArgsField(
           <div className="resource-comparison__resource">
             <span className="resource-comparison__label">{spec.kind === 'item' ? '物品' : '流体'}</span>
             <ResourcePickerControl
+              userConfig={userConfig}
               spec={spec}
               value={parsed.resource}
               onChange={(nextValue) => handleChange({ resource: nextValue })}

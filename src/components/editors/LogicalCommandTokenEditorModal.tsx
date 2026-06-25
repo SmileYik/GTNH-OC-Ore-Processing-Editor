@@ -7,10 +7,12 @@ import {
 } from '../../lib/logical/LogicalRules';
 import { Modal } from '../Modal';
 import { fieldRow } from './shared';
+import { Config } from '../../config';
 
 interface LogicalCommandTokenEditorModalProps {
   open: boolean;
   token: LogicalExpressionCommandToken | null;
+  userConfig: Config;
   onClose: () => void;
   onSave: (next: { name: string; args: string }) => void;
 }
@@ -18,6 +20,7 @@ interface LogicalCommandTokenEditorModalProps {
 export function LogicalCommandTokenEditorModal({
   open,
   token,
+  userConfig,
   onClose,
   onSave
 }: LogicalCommandTokenEditorModalProps) {
@@ -91,7 +94,8 @@ export function LogicalCommandTokenEditorModal({
         {selectedDefinition
           ? selectedDefinition.renderArgsField({
               value: args,
-              onChange: setArgs
+              onChange: setArgs,
+              userConfig
             })
           : fieldRow(
               '参数',
@@ -102,7 +106,7 @@ export function LogicalCommandTokenEditorModal({
         <div className="logical-command-token-editor__summary">
           <span className="chip chip--soft">{selectedDefinition?.label ?? '自定义命令'}</span>
           <span className="logical-command-token-editor__summary-text">
-            {formatLogicalCommandSnapshot({ name, args })}
+            {formatLogicalCommandSnapshot({ name, args }, userConfig.lang)}
           </span>
         </div>
 

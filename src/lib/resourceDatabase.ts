@@ -7,8 +7,10 @@ import {
   useMemo,
   useReducer,
   useRef,
+  useSyncExternalStore,
   type ReactNode
 } from 'react';
+import { LanguageConfig } from '../config';
 
 export type ResourceKind = 'item' | 'fluid';
 export type ResourceLocale = 'zh_CN' | 'en_US';
@@ -83,6 +85,7 @@ export interface ResourceDatabaseEntry {
 }
 
 type ResourceDatabaseStatus = 'idle' | 'loading' | 'ready' | 'error';
+type ResourceDatabaseCacheKey = `${ResourceKind}:${ResourceLocale}`;
 
 interface ResourceDatabaseSliceState {
   status: ResourceDatabaseStatus;
@@ -117,10 +120,48 @@ interface ResourceDatabaseCacheEntry {
 }
 
 const resourceDatabaseCache = new Map<ResourceLocale, Map<ResourceKind, ResourceDatabaseCacheEntry>>();
+const resourceDatabaseCacheRevisions = new Map<ResourceDatabaseCacheKey, number>();
+const resourceDatabaseCacheListeners = new Map<ResourceDatabaseCacheKey, Set<() => void>>();
 
 function normalizeResourceLocale(locale: string | undefined): ResourceLocale {
   const compactLocale = (locale ?? DEFAULT_RESOURCE_LOCALE).trim().replace('-', '_') as ResourceLocale;
   return RESOURCE_LOCALE_SET.has(compactLocale) ? compactLocale : DEFAULT_RESOURCE_LOCALE;
+}
+
+function getResourceDatabaseCacheKey(kind: ResourceKind, locale: ResourceLocale): ResourceDatabaseCacheKey {
+  return `${kind}:${locale}`;
+}
+
+function getResourceDatabaseCacheRevision(kind: ResourceKind, locale: ResourceLocale): number {
+  return resourceDatabaseCacheRevisions.get(getResourceDatabaseCacheKey(kind, locale)) ?? 0;
+}
+
+function subscribeResourceDatabaseCache(
+  kind: ResourceKind,
+  locale: ResourceLocale,
+  listener: () => void
+): () => void {
+  const cacheKey = getResourceDatabaseCacheKey(kind, locale);
+  let listeners = resourceDatabaseCacheListeners.get(cacheKey);
+  if (!listeners) {
+    listeners = new Set<() => void>();
+    resourceDatabaseCacheListeners.set(cacheKey, listeners);
+  }
+
+  listeners.add(listener);
+
+  return () => {
+    listeners?.delete(listener);
+    if (listeners && listeners.size === 0) {
+      resourceDatabaseCacheListeners.delete(cacheKey);
+    }
+  };
+}
+
+function notifyResourceDatabaseCacheUpdated(kind: ResourceKind, locale: ResourceLocale): void {
+  const cacheKey = getResourceDatabaseCacheKey(kind, locale);
+  resourceDatabaseCacheRevisions.set(cacheKey, getResourceDatabaseCacheRevision(kind, locale) + 1);
+  resourceDatabaseCacheListeners.get(cacheKey)?.forEach((listener) => listener());
 }
 
 export function getResourceLocaleLabel(locale: string): string {
@@ -575,6 +616,7 @@ function getResourceDatabasePromise(kind: ResourceKind, locale: ResourceLocale):
         const snapshot = createResourceDatabaseSnapshot(records);
         cacheEntry.snapshot = snapshot;
         cacheEntry.pending = null;
+        notifyResourceDatabaseCacheUpdated(kind, locale);
         return snapshot;
       })
       .catch((error) => {
@@ -690,4 +732,78 @@ export function peekResourceRecords(
   locale: ResourceLocale = DEFAULT_RESOURCE_LOCALE
 ): ResourceRecord[] | null {
   return peekResourceDatabase(kind, locale)?.records ?? null;
+}
+
+export function peekAndFindResourceRecordsById(
+  kind: ResourceKind,
+  key: string,
+  locale: ResourceLocale,
+  defaultValue: ResourceRecord
+): ResourceRecord {
+  const database = peekResourceDatabase(kind, locale);
+  const record = database ? findResourceRecord(database, key, 'id') : defaultValue;
+  return record ?? defaultValue;
+}
+
+export function peekAndFindResourceRecordsByLabelInFirstLocale(
+  kind: ResourceKind,
+  label: string,
+  locales: ResourceLocale[]
+): ResourceRecord | null {
+  if (locales.length === 0) return null;
+
+  const first = normalizeResourceLocale(locales[0]);
+  const langs = Array.from(new Set(locales.slice(1).map((lang) => normalizeResourceLocale(lang))));
+  
+  let record = null;
+  for (const lang of langs) {
+    const database = peekResourceDatabase(kind, lang);
+    const result = database ? findResourceRecord(database, label, 'label') : null;
+    if (result) {
+      record = result;
+      break;
+    }
+  }
+
+  if (record) {
+    const firstDatabase = peekResourceDatabase(kind, first);
+    if (!firstDatabase) {
+      return record;
+    }
+
+    return findResourceRecord(firstDatabase, record.key, 'id') ?? record;
+  } else {
+    const firstDatabase = peekResourceDatabase(kind, first);
+    return firstDatabase ? findResourceRecord(firstDatabase, label, 'label') : null;
+  }
+}
+
+export function peekAndFindResourceRecord(
+  kind: ResourceKind,
+  isKey: boolean,
+  value: string,
+  localeConfig: LanguageConfig
+): ResourceRecord | null {
+  const defaultRecord: ResourceRecord = {} as ResourceRecord;
+  
+  let record = null;
+  if (isKey) {
+    record = peekAndFindResourceRecordsById(kind, value, localeConfig.display as ResourceLocale, defaultRecord);
+  } else {
+    record = peekAndFindResourceRecordsByLabelInFirstLocale(kind, value, [localeConfig.display, localeConfig.game] as ResourceLocale[]);
+  }
+  return record === defaultRecord ? null : record;
+}
+
+export function useResourceDatabaseCacheRevision(
+  kind: ResourceKind,
+  locale: ResourceLocale = DEFAULT_RESOURCE_LOCALE
+): number {
+  const normalizedLocale = normalizeResourceLocale(locale);
+
+  return useSyncExternalStore(
+    (listener) => subscribeResourceDatabaseCache(kind, normalizedLocale, listener),
+    () => getResourceDatabaseCacheRevision(kind, normalizedLocale),
+    () => 0
+  );
 }
