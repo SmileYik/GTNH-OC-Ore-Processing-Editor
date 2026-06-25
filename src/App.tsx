@@ -551,6 +551,7 @@ export function App() {
       {editor?.type === 'logicalRules' ? (
         <LogicalRuleEditorModal
           open
+          userConfig={userConfig}
           groups={logicalRules}
           availableRoles={roleNames}
           onClose={closeEditor}

@@ -122,7 +122,7 @@ export function TreeRoot({ title, groups, userConfig }: { title: string; groups:
   }, [groups, userConfig.lang.display, userConfig.lang.game, displayRevision]);
 
   return (
-    <div className="tree-root">
+    <div className="tree-root scroll-stack">
       <div className="tree-root__title">{title}</div>
       {groups.length === 0 ? (
         <div className="empty-state empty-state--compact">暂无数据</div>

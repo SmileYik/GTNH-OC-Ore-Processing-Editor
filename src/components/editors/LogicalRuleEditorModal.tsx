@@ -5,11 +5,13 @@ import { Modal } from '../Modal';
 import { fieldRow } from './shared';
 import { LogicalRuleDetailModal } from './LogicalRuleDetailModal';
 import { validateLogicalExpression } from '../../lib/logical/LogicalRules';
+import { Config } from '../../config';
 
 interface LogicalRuleEditorModalProps {
   open: boolean;
   groups: FilterGroup[];
   availableRoles: string[];
+  userConfig: Config;
   onClose: () => void;
   onSave: (groups: FilterGroup[]) => void;
 }
@@ -46,6 +48,7 @@ export function LogicalRuleEditorModal({
   open,
   groups,
   availableRoles,
+  userConfig,
   onClose,
   onSave
 }: LogicalRuleEditorModalProps) {
@@ -505,6 +508,7 @@ export function LogicalRuleEditorModal({
 
       {ruleEditor && selectedGroup ? (
         <LogicalRuleDetailModal
+          userConfig={userConfig}
           open
           mode={ruleEditor.mode}
           groupRole={selectedGroup.role}

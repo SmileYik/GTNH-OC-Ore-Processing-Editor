@@ -11,11 +11,13 @@ import {
 } from '../../lib/logical/LogicalRules';
 import { Modal } from '../Modal';
 import { fieldRow } from './shared';
+import { Config } from '../../config';
 
 interface LogicalCommandTokenInfoModalProps {
   open: boolean;
   token: LogicalExpressionCommandToken | null;
   cacheState: LogicalCommandCacheState;
+  userConfig: Config;
   onClose: () => void;
 }
 
@@ -23,6 +25,7 @@ export function LogicalCommandTokenInfoModal({
   open,
   token,
   cacheState,
+  userConfig,
   onClose
 }: LogicalCommandTokenInfoModalProps) {
   const selectedDefinition = useMemo(
@@ -75,7 +78,7 @@ export function LogicalCommandTokenInfoModal({
         <div className="logical-command-token-editor__summary">
           <span className="chip chip--soft">{selectedDefinition?.label ?? '自定义命令'}</span>
           <span className="logical-command-token-editor__summary-text">
-            {formatLogicalCommandSnapshot(token)}
+            {formatLogicalCommandSnapshot(token, userConfig.lang)}
           </span>
         </div>
 
@@ -98,7 +101,7 @@ export function LogicalCommandTokenInfoModal({
             <strong>缓存关联</strong>
             <p>{selectedCacheItem.pinned ? '已固定缓存' : '自动缓存'}</p>
             <p className="mono">{selectedCacheItem.id}</p>
-            <p>{formatLogicalCommandCacheItem(selectedCacheItem)}</p>
+            <p>{formatLogicalCommandCacheItem(selectedCacheItem, userConfig.lang)}</p>
           </div>
         ) : (
           <div className="logical-token-editor__definition">

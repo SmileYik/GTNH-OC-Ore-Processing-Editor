@@ -30,6 +30,7 @@ import {
   upsertLogicalCommandCacheSnapshot,
   validateLogicalExpression
 } from '../../lib/logical/LogicalRules';
+import { Config } from '../../config';
 
 type DragSource =
   | {
@@ -85,6 +86,7 @@ interface LogicalRuleDetailModalProps {
   mode: 'create' | 'edit';
   groupRole: string;
   initialRule: FilterRuleEntry;
+  userConfig: Config;
   onClose: () => void;
   onSave: (next: FilterRuleEntry) => void;
 }
@@ -201,6 +203,7 @@ function LogicalFlowSlot({ index, active, onDropAt, onDragEnterAt, onActivate }:
 interface LogicalTokenChipProps {
   token: LogicalExpressionToken;
   active: boolean;
+  userConfig: Config,
   onSelect: () => void;
   onDelete: () => void;
   onDragStart: (event: DragEvent<HTMLDivElement>) => void;
@@ -212,6 +215,7 @@ interface LogicalTokenChipProps {
 function LogicalTokenChip({
   token,
   active,
+  userConfig,
   onSelect,
   onDelete,
   onDragStart,
@@ -228,7 +232,7 @@ function LogicalTokenChip({
 
   const label =
     token.type === 'command'
-      ? formatLogicalCommandSnapshot(token)
+      ? formatLogicalCommandSnapshot(token, userConfig.lang)
       : token.type === 'operator'
         ? token.value
         : token.value;
@@ -324,6 +328,7 @@ export function LogicalRuleDetailModal({
   mode,
   groupRole,
   initialRule,
+  userConfig,
   onClose,
   onSave
 }: LogicalRuleDetailModalProps) {
@@ -356,7 +361,7 @@ export function LogicalRuleDetailModal({
     () => {
       return {
         maxItems: cacheState.maxItems,
-        items: cacheState.items.filter(it => normalizedQuery ? [it.name, it.args, formatLogicalCommandCacheItem(it)].join(' ').toLowerCase().includes(normalizedQuery) : true)
+        items: cacheState.items.filter(it => normalizedQuery ? [it.name, it.args, formatLogicalCommandCacheItem(it, userConfig.lang)].join(' ').toLowerCase().includes(normalizedQuery) : true)
       } as LogicalCommandCacheState
     },
     [cacheState, normalizedQuery]
@@ -941,7 +946,7 @@ export function LogicalRuleDetailModal({
                         setActiveSlotIndex(null);
                       }}
                     >
-                      <span className="logical-cache-item__title">{formatLogicalCommandCacheItem(item)}</span>
+                      <span className="logical-cache-item__title">{formatLogicalCommandCacheItem(item, userConfig.lang)}</span>
                       <span className="logical-cache-item__meta">
                         {item.pinned ? '已固定' : '自动缓存'}
                         {isLinked ? ' · 当前使用中' : ''}
@@ -1027,6 +1032,7 @@ export function LogicalRuleDetailModal({
             {expressionTokens.map((token, index) => (
               <Fragment key={token.id}>
                 <LogicalTokenChip
+                  userConfig={userConfig}
                   token={token}
                   active={selectedTokenId === token.id}
                   onSelect={() => {
@@ -1176,7 +1182,7 @@ export function LogicalRuleDetailModal({
                       setActiveSlotIndex(null);
                     }}
                   >
-                    <span className="logical-cache-item__title">{formatLogicalCommandCacheItem(item)}</span>
+                    <span className="logical-cache-item__title">{formatLogicalCommandCacheItem(item, userConfig.lang)}</span>
                     <span className="logical-cache-item__meta">
                       {item.pinned ? '已固定' : '自动缓存'}
                       {isLinked ? ' · 当前使用中' : ''}
@@ -1364,6 +1370,7 @@ export function LogicalRuleDetailModal({
       ) : null}
 
       <LogicalCommandTokenInfoModal
+        userConfig={userConfig}
         open={Boolean(commandInfoCommandToken)}
         token={commandInfoCommandToken}
         cacheState={cacheState}
@@ -1371,6 +1378,7 @@ export function LogicalRuleDetailModal({
       />
 
       <LogicalCommandTokenEditorModal
+        userConfig={userConfig}
         open={Boolean(editingCommandToken)}
         token={editingCommandToken}
         onClose={() => setCommandEditorTokenId(null)}
