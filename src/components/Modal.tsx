@@ -2,6 +2,7 @@ import { createPortal } from 'react-dom';
 import { useEffect } from 'react';
 import { useRef } from 'react';
 import type { ReactNode } from 'react';
+import './Modal.css';
 
 let modalScrollLockCount = 0;
 let previousBodyOverflow = '';

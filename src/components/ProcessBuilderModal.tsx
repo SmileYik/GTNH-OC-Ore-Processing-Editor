@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
+import './ProcessBuilderModal.css';
 import type { MineralProcess } from '../lib/OreConfigManager';
 import { findMineralName, StepPath } from './dashboard/common';
 import { Modal } from './Modal';

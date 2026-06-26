@@ -1,0 +1,207 @@
+.conflict-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--secondary) 18%, var(--border));
+  background: color-mix(in srgb, var(--secondary-container) 54%, white);
+}
+
+.conflict-panel__header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.conflict-panel__title {
+  margin: 0;
+  font-size: 1.02rem;
+  color: var(--secondary);
+}
+
+.conflict-panel__description {
+  margin: 0;
+  color: var(--text-1);
+}
+
+.conflict-panel__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.conflict-panel__card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--secondary) 12%, var(--border));
+  background: var(--surface-strong);
+}
+
+.conflict-panel__label {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.process-builder {
+  gap: 16px;
+}
+
+.process-builder__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.process-builder__hint {
+  color: var(--text-1);
+}
+
+.process-builder__grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(420px, 1.2fr);
+  gap: 16px;
+  min-height: 480px;
+  align-items: start;
+}
+
+.builder-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface-strong);
+  box-shadow: var(--shadow-soft);
+  min-height: 0;
+}
+
+.builder-panel--sequence {
+  background: color-mix(in srgb, var(--primary-container) 24%, white);
+}
+
+.builder-panel__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.builder-panel__header h3 {
+  margin: 0;
+  font-size: 1.02rem;
+}
+
+.palette {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.palette-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 86px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--primary) 12%, var(--border));
+  background: color-mix(in srgb, var(--primary-container) 54%, white);
+  text-align: left;
+}
+
+.palette-card__name {
+  font-weight: 700;
+  color: var(--primary-strong);
+}
+
+.palette-card__tip {
+  font-size: 0.8rem;
+  color: var(--text-2);
+}
+
+.flow-rail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  min-height: 180px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px dashed color-mix(in srgb, var(--primary) 18%, var(--border));
+  background: var(--surface-soft);
+}
+
+.flow-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  min-height: 42px;
+  border-radius: 999px;
+  border: 1px dashed color-mix(in srgb, var(--primary) 18%, var(--border));
+  color: var(--text-2);
+  background: color-mix(in srgb, var(--primary-container) 28%, white);
+  flex: 0 0 auto;
+}
+
+.flow-slot.is-active {
+  background: color-mix(in srgb, var(--primary-container) 72%, white);
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--border));
+  color: var(--primary-strong);
+}
+
+.flow-node {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 12px 0 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary-container) 74%, white);
+  border: 1px solid color-mix(in srgb, var(--primary) 14%, var(--border));
+  color: var(--primary-strong);
+  flex: 0 0 auto;
+  user-select: none;
+}
+
+.flow-node__name {
+  white-space: nowrap;
+}
+
+.flow-node__remove {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--primary-strong);
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
+.builder-panel .empty-state {
+  margin-top: 6px;
+}
+
+
+@media (max-width: 1280px) {
+  .process-builder__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 960px) {
+  .conflict-panel__grid {
+    grid-template-columns: 1fr;
+  }
+}

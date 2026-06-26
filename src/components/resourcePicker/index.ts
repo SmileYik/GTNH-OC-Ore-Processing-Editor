@@ -1,3 +1,5 @@
+import './resourcePicker.css';
+
 export {
   ResourcePickerControl,
   ResourcePickerModal,

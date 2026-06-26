@@ -1,5 +1,6 @@
 import type { OreConfig } from '../../lib/OreConfig';
 import type { FilterGroup, InterfaceEntry, MineralProcess, ProcessReverseGroup, RoleEntry } from '../../lib/OreConfigManager';
+import './dashboard.css';
 import { ExportSection } from './ExportSection';
 import { FilterListCard } from './FilterListCard';
 import { InterfaceSection } from './InterfaceSection';

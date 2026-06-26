@@ -1,4 +1,5 @@
 import { useEffect, type Dispatch, type ReactNode, type SetStateAction } from 'react';
+import './Notice.css';
 
 export type NoticeTone = 'info' | 'success' | 'error';
 

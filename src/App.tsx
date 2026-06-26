@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import './App.css';
 import { type Config, useConfig } from './config';
 import {
   buildProcessReverse,

@@ -1,0 +1,33 @@
+.dashboard {
+  display: block;
+  column-count: 2;
+  column-gap: 16px;
+  column-fill: balance;
+}
+
+.dashboard > .panel {
+  width: 100%;
+  margin: 0 0 12px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.role-grid {
+  display: block;
+  column-width: 240px;
+  column-gap: 12px;
+  column-fill: balance;
+}
+
+@media (max-width: 1280px) {
+  .dashboard {
+    column-count: 1;
+    column-gap: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard > .panel {
+    margin-bottom: 12px;
+  }
+}

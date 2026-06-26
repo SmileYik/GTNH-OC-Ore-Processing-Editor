@@ -1,3 +1,5 @@
+import './editors.css';
+
 export { RoleEditorModal } from './RoleEditorModal';
 export { InterfaceEditorModal } from './InterfaceEditorModal';
 export { ListEditorModal } from './ListEditorModal';
