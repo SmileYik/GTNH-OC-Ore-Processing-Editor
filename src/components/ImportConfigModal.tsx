@@ -108,7 +108,7 @@ export function ImportConfigModal({ open, initialFileName, onClose, onImport }: 
         ref={fileInputRef}
         className="sr-only"
         type="file"
-        accept=".new,.lua,.txt,text/plain"
+        accept=".config,.lua,.txt,text/plain"
         onChange={handleFileChange}
       />
 
@@ -120,7 +120,7 @@ export function ImportConfigModal({ open, initialFileName, onClose, onImport }: 
               className="input"
               value={fileName}
               onChange={(event) => setFileName(event.target.value)}
-              placeholder="setting.new"
+              placeholder="ore.config"
             />
           </div>
           <span className="field-hint">这个名字会用于下载时的文件名。</span>

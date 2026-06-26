@@ -29,7 +29,7 @@ export function ExportSection({ config, fileName }: ExportSectionProps) {
   );
   const whitelistCount = useMemo(() => countFilterIds(config.idWhitelist), [config]);
   const blacklistCount = useMemo(() => countFilterIds(config.idBlacklist), [config]);
-  const downloadName = fileName.trim() || 'setting.new';
+  const downloadName = fileName.trim() || 'ore.config';
 
   useAutoDismissNotice(notice, setNotice, 3000);
 
