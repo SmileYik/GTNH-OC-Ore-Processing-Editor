@@ -103,10 +103,10 @@ svg {
   z-index: 20;
   display: flex;
   justify-content: space-between;
-  gap: 20px;
-  align-items: flex-end;
-  padding: 20px 24px;
-  margin-bottom: 16px;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 20px;
+  margin-bottom: 14px;
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   background: rgba(255, 255, 255, 0.72);
@@ -117,7 +117,9 @@ svg {
 .topbar__copy {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .topbar__eyebrow {
@@ -129,8 +131,8 @@ svg {
 
 .topbar h1 {
   margin: 0;
-  font-size: clamp(1.7rem, 3vw, 2.55rem);
-  line-height: 1.1;
+  font-size: clamp(1.28rem, 2.4vw, 1.8rem);
+  line-height: 1.08;
 }
 
 .topbar p {
@@ -142,18 +144,35 @@ svg {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 12px;
+  gap: 8px;
+  min-width: 0;
+  flex: 0 0 auto;
 }
 
-.meta-pills {
+.topbar__summary {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 4px 10px;
+  min-width: 0;
+  color: var(--text-1);
+  font-size: 0.82rem;
 }
 
-.meta-pills--right {
-  justify-content: flex-end;
+.topbar__summary-item {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.topbar__summary-item--file {
+  max-width: min(44vw, 420px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-0);
+}
+
+.topbar__summary-separator {
+  color: var(--text-2);
 }
 
 .chip {
@@ -228,6 +247,12 @@ svg {
 
 .button-row--wrap {
   justify-content: flex-end;
+}
+
+.topbar__button-row {
+  width: auto;
+  flex-wrap: nowrap;
+  gap: 8px;
 }
 
 .button {
@@ -2010,7 +2035,6 @@ svg {
 }
 
 @media (max-width: 960px) {
-  .topbar,
   .export-panel__header,
   .panel__header,
   .record-card__header,
@@ -2020,10 +2044,68 @@ svg {
     align-items: flex-start;
   }
 
-  .topbar__actions,
   .panel__actions {
     width: 100%;
     align-items: flex-start;
+  }
+
+  .topbar {
+    top: 8px;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    align-items: center;
+  }
+
+  .topbar__copy {
+    width: auto;
+    flex: 1 1 280px;
+    gap: 4px;
+  }
+
+  .topbar__eyebrow,
+  .topbar p {
+    display: none;
+  }
+
+  .topbar h1 {
+    font-size: clamp(1.16rem, 4vw, 1.48rem);
+  }
+
+  .topbar__actions {
+    width: auto;
+    margin-left: auto;
+    align-items: flex-end;
+    gap: 0;
+  }
+
+  .topbar__summary {
+    gap: 4px 8px;
+    font-size: 0.78rem;
+  }
+
+  .topbar__summary-item--file,
+  .topbar__summary-separator {
+    display: none;
+  }
+
+  .topbar__button-row.button-row--wrap {
+    justify-content: flex-end;
+  }
+
+  .meta-pills {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding-bottom: 2px;
+  }
+
+  .chip {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    font-size: 0.8rem;
   }
 
   .button-row--wrap {
@@ -2055,6 +2137,58 @@ svg {
   }
 }
 
+@media (max-width: 760px) {
+  .topbar {
+    top: 4px;
+    gap: 8px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    align-items: flex-start;
+  }
+
+  .topbar__copy {
+    width: 100%;
+    flex: 1 1 auto;
+    gap: 0;
+  }
+
+  .topbar h1 {
+    font-size: 0.98rem;
+    line-height: 1.12;
+  }
+
+  .topbar__summary {
+    display: none;
+  }
+
+  .topbar__actions {
+    width: 100%;
+    margin-left: 0;
+    align-items: stretch;
+  }
+
+  .topbar__button-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+  }
+
+  .topbar__button-row.button-row--wrap {
+    justify-content: stretch;
+  }
+
+  .topbar__button-row .button {
+    width: 100%;
+    min-height: 32px;
+    padding: 0 8px;
+    font-size: 0.76rem;
+    line-height: 1.1;
+    text-align: center;
+    box-shadow: none;
+  }
+}
+
 @media (max-width: 640px) {
   .app-shell {
     --shell-width: min(var(--max-width), calc(100vw - 16px));
@@ -2065,7 +2199,14 @@ svg {
   .topbar,
   .panel,
   .export-panel {
-    border-radius: 22px;
+    border-radius: 18px;
+  }
+
+  .topbar {
+    top: 4px;
+    gap: 8px;
+    padding-top: 10px;
+    padding-bottom: 10px;
   }
 
   .topbar,
@@ -2134,7 +2275,33 @@ svg {
   }
 }
 
-@media (max-height: 820px) {
+@media (max-width: 420px) {
+  .topbar {
+    gap: 6px;
+  }
+
+  .topbar,
+  .panel__header,
+  .modal-header,
+  .modal-body,
+  .modal-footer,
+  .export-panel {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .topbar h1 {
+    font-size: 0.92rem;
+  }
+
+  .topbar__button-row .button {
+    min-height: 30px;
+    padding: 0 6px;
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-height: 820px) and (min-width: 761px) {
   .app-shell {
     padding-top: 12px;
     padding-bottom: 18px;
@@ -2188,7 +2355,7 @@ svg {
   }
 }
 
-@media (max-height: 680px) {
+@media (max-height: 680px) and (min-width: 761px) {
   .topbar {
     padding: 10px 14px;
     gap: 10px;

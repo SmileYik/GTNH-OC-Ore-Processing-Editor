@@ -432,32 +432,44 @@ export function App() {
     <div className="app-shell" style={{ '--topbar-height': `${topbarHeight}px` } as CSSProperties}>
       <header className="topbar" ref={topbarRef}>
         <div className="topbar__copy">
-          <span className="topbar__eyebrow">Offline OC Ore Processing Editor</span>
           <h1>OC 矿处配置编辑器</h1>
-          <p>离线浏览、修改并导出 OC矿处配置文件。</p>
+          <div className="topbar__summary">
+            <span className="topbar__summary-item topbar__summary-item--file" title={fileName}>
+              当前文件：{fileName}
+            </span>
+            <span className="topbar__summary-separator" aria-hidden="true">
+              ·
+            </span>
+            <span className="topbar__summary-item">职责 {stats.roles}</span>
+            <span className="topbar__summary-item">输出口 {stats.interfaces}</span>
+            <span className="topbar__summary-item">矿物 {stats.processes}</span>
+          </div>
         </div>
 
         <div className="topbar__actions">
-          <div className="meta-pills">
-            <span className="chip chip--meta">当前文件：{fileName}</span>
-            <span className="chip chip--meta">职责 {stats.roles}</span>
-            <span className="chip chip--meta">输出口 {stats.interfaces}</span>
-            <span className="chip chip--meta">矿物 {stats.processes}</span>
-            <span className="chip chip--info">语言 {userConfig.lang.game} / {userConfig.lang.display}</span>
-            <span className="chip chip--info">
-              数据库 {userConfig.database.autoLoadItems ? '物品自动' : '物品手动'} ·{' '}
-              {userConfig.database.autoLoadFluids ? '流体自动' : '流体手动'}
-            </span>
-          </div>
-
-          <div className="button-row button-row--wrap">
-            <button type="button" className="button button--filled" onClick={() => setUserConfigOpen(true)}>
+          <div className="button-row button-row--wrap topbar__button-row">
+            <button
+              type="button"
+              className="button button--filled button--compact"
+              onClick={() => setUserConfigOpen(true)}
+              title={`语言 ${userConfig.lang.game} / ${userConfig.lang.display}，数据库 ${
+                userConfig.database.autoLoadItems ? '物品自动' : '物品手动'
+              }，${userConfig.database.autoLoadFluids ? '流体自动' : '流体手动'}`}
+            >
               用户配置
             </button>
-            <button type="button" className="button button--tonal" onClick={() => setImportConfigOpen(true)}>
+            <button
+              type="button"
+              className="button button--tonal button--compact"
+              onClick={() => setImportConfigOpen(true)}
+            >
               导入配置
             </button>
-            <button type="button" className="button button--tonal" onClick={handleResetSample}>
+            <button
+              type="button"
+              className="button button--tonal button--compact"
+              onClick={handleResetSample}
+            >
               恢复示例
             </button>
           </div>
