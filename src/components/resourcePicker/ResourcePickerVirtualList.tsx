@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   formatResourceDisplay,
   findResourceRecord,
@@ -131,6 +131,7 @@ export function ResourcePickerVirtualList({
   const selectedRecordIndex = selectedRecord ? records.indexOf(selectedRecord) : -1;
   const selectedFilteredIndex =
     selectedRecordIndex >= 0 ? recordIndices.indexOf(selectedRecordIndex) : -1;
+  const normalizedCurrentValue = useMemo(() => currentValue.replace('#', ':'), [currentValue]);
 
   useLayoutEffect(() => {
     const element = containerRef.current;
@@ -165,7 +166,7 @@ export function ResourcePickerVirtualList({
         }
         const gameRecord = peekAndFindResourceRecordsById(record.kind, record.key, userConfig.lang.game as ResourceLocale, record);
 
-        const isSelected = matchesSelectedValue(record, currentValue, valueMode);
+        const isSelected = matchesSelectedValue(record, normalizedCurrentValue, valueMode);
         const selectionValue = getResourceSelectionValue(gameRecord, valueMode);
 
         let title = record.displayName;

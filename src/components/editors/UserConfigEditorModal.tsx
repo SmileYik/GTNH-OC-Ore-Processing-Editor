@@ -77,7 +77,7 @@ export function UserConfigEditorModal({ open, onClose, onSave }: UserConfigEdito
     <Modal
       open={open}
       title="用户配置"
-      subtitle="这里修改的是浏览器本地离线保存的用户配置，不会影响导出的 OC 配置文本。"
+      subtitle="修改网站中的设置"
       onClose={onClose}
       footer={
         <>
@@ -115,7 +115,7 @@ export function UserConfigEditorModal({ open, onClose, onSave }: UserConfigEdito
               </option>
             ))}
           </select>,
-          '用于表示游戏资源所在的语言环境。'
+          '选择你游戏中使用的语言，所有规则和ID都以这个语言为准。如果你玩的服务器是英文的那么这里就需要选英文'
         )}
 
         {fieldRow(
@@ -139,7 +139,7 @@ export function UserConfigEditorModal({ open, onClose, onSave }: UserConfigEdito
               </option>
             ))}
           </select>,
-          '用于界面显示或后续扩展的语言环境。'
+          '选择你希望看见的本地化语言'
         )}
 
         {fieldRow(
@@ -158,7 +158,7 @@ export function UserConfigEditorModal({ open, onClose, onSave }: UserConfigEdito
                 }))
               }
             />
-            <span>启用时，打开页面后会自动预加载流体数据库。</span>
+            <span>自动预加载流体数据库（≈60KB/每种语言）</span>
           </label>,
           '关闭后会按需加载，能减少首次打开的资源消耗。'
         )}
@@ -179,7 +179,7 @@ export function UserConfigEditorModal({ open, onClose, onSave }: UserConfigEdito
                 }))
               }
             />
-            <span>启用时，打开页面后会自动预加载物品数据库。</span>
+            <span>自动预加载物品数据库（≈3MB/每种语言）</span>
           </label>,
           '关闭后会按需加载，适合不常查询数据库的场景。'
         )}

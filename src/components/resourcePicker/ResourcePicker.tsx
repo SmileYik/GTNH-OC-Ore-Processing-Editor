@@ -198,7 +198,11 @@ export function ResourcePickerModal({ spec, currentValue, valueMode, onClose, on
       onClose={onClose}
       footer={
         <>
-          <select className="input" value={locale} onChange={(event) => setLocale(event.target.value as ResourceLocale)}>
+          <select className="input" 
+            value={locale} 
+            onChange={(event) => setLocale(event.target.value as ResourceLocale)}
+            disabled={showSkeleton}
+          >
             {RESOURCE_LOCALE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
