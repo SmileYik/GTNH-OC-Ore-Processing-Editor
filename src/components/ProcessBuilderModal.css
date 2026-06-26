@@ -183,7 +183,7 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--surface-frost);
   color: var(--primary-strong);
   line-height: 1;
   flex: 0 0 auto;
