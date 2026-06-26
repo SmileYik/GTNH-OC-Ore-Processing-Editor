@@ -1,52 +1,52 @@
 :root {
   color-scheme: light;
 
-  /* Quiet Light-inspired base palette */
-  --bg-0: #f4f1f7;
-  --bg-1: #ece8f0;
-  --surface: #f7f4f9;
+  /* Ore console-inspired base palette */
+  --bg-0: #eef3f1;
+  --bg-1: #dde7e3;
+  --surface: #f7faf8;
   --surface-strong: #ffffff;
-  --surface-soft: #efeaf4;
-  --surface-hover: #e6dfed;
+  --surface-soft: #e9efec;
+  --surface-hover: #dee7e3;
   --surface-tint: color-mix(in srgb, var(--surface-strong) 72%, transparent);
   --surface-tint-strong: color-mix(in srgb, var(--surface-strong) 90%, transparent);
   --surface-frost: color-mix(in srgb, var(--surface-strong) 88%, transparent);
   --surface-frost-strong: color-mix(in srgb, var(--surface-strong) 97%, transparent);
   --surface-readonly: color-mix(in srgb, var(--surface-strong) 84%, transparent);
-  --border: #dbd2e3;
-  --border-strong: #c7bbd4;
+  --border: #cfd9d4;
+  --border-strong: #b8c5bf;
   --border-soft: color-mix(in srgb, var(--text-1) 12%, transparent);
-  --text-0: #241d2e;
-  --text-1: #585063;
-  --text-2: #7d7688;
-  --text-on-dark: #f6f0fd;
-  --primary: #6e4ea2;
-  --primary-strong: #5c3f8e;
+  --text-0: #1f2b28;
+  --text-1: #52635d;
+  --text-2: #77857f;
+  --text-on-dark: #edf5f2;
+  --primary: #2f6f68;
+  --primary-strong: #245a54;
   --primary-on: #ffffff;
-  --primary-container: #e8def4;
-  --secondary: #6f677b;
-  --secondary-container: #ede8f2;
-  --success: #627c66;
-  --success-strong: #45604a;
-  --success-container: #e2eee4;
-  --warning: #8c6807;
-  --warning-strong: #6c5100;
-  --warning-container: #f6e8b6;
-  --danger: #b24b43;
-  --danger-strong: #8d2f2b;
-  --danger-soft: #f8e2df;
+  --primary-container: #d8ebe5;
+  --secondary: #5f746d;
+  --secondary-container: #e0e8e4;
+  --success: #587857;
+  --success-strong: #3d573d;
+  --success-container: #dce9d8;
+  --warning: #9a6a14;
+  --warning-strong: #734e00;
+  --warning-container: #f4e1b5;
+  --danger: #a4523d;
+  --danger-strong: #7f3827;
+  --danger-soft: #f3dfd8;
 
   /* Shared interaction and elevation tokens */
-  --overlay-scrim: rgba(48, 32, 74, 0.28);
-  --shadow: 0 18px 48px rgba(54, 40, 74, 0.1);
-  --shadow-soft: 0 8px 20px rgba(54, 40, 74, 0.06);
-  --shadow-pressable: 0 1px 3px rgba(54, 40, 74, 0.12);
-  --shadow-filled: 0 1px 2px rgba(54, 40, 74, 0.18), 0 5px 12px rgba(110, 78, 162, 0.22);
-  --shadow-card: 0 1px 2px rgba(54, 40, 74, 0.08), 0 8px 18px rgba(54, 40, 74, 0.08);
-  --shadow-dialog: 0 2px 8px rgba(48, 32, 74, 0.14), 0 24px 56px rgba(48, 32, 74, 0.18);
-  --shadow-menu: 0 22px 50px rgba(36, 24, 58, 0.18);
-  --shadow-notice: 0 1px 2px rgba(48, 32, 74, 0.1), 0 8px 24px rgba(48, 32, 74, 0.08);
-  --shadow-notice-floating: 0 2px 6px rgba(48, 32, 74, 0.12), 0 18px 36px rgba(48, 32, 74, 0.12);
+  --overlay-scrim: rgba(32, 51, 48, 0.26);
+  --shadow: 0 18px 48px rgba(31, 48, 45, 0.1);
+  --shadow-soft: 0 8px 20px rgba(31, 48, 45, 0.06);
+  --shadow-pressable: 0 1px 3px rgba(31, 48, 45, 0.12);
+  --shadow-filled: 0 1px 2px rgba(31, 48, 45, 0.18), 0 6px 14px rgba(47, 111, 104, 0.24);
+  --shadow-card: 0 1px 2px rgba(31, 48, 45, 0.08), 0 8px 18px rgba(31, 48, 45, 0.08);
+  --shadow-dialog: 0 2px 8px rgba(26, 42, 39, 0.14), 0 24px 56px rgba(26, 42, 39, 0.18);
+  --shadow-menu: 0 22px 50px rgba(22, 36, 34, 0.18);
+  --shadow-notice: 0 1px 2px rgba(31, 48, 45, 0.1), 0 8px 24px rgba(31, 48, 45, 0.08);
+  --shadow-notice-floating: 0 2px 6px rgba(31, 48, 45, 0.12), 0 18px 36px rgba(31, 48, 45, 0.12);
 
   /* State layers */
   --primary-outline: color-mix(in srgb, var(--primary) 16%, var(--border));
@@ -71,20 +71,20 @@
   --accent-surface-strong: color-mix(in srgb, var(--primary-container) 56%, white);
   --accent-border: color-mix(in srgb, var(--primary) 14%, var(--border));
   --accent-border-strong: color-mix(in srgb, var(--primary) 20%, var(--border));
-  --accent-text: #655a76;
-  --accent-text-strong: #544866;
+  --accent-text: #4c625b;
+  --accent-text-strong: #374a45;
   --tonal-button-bg: var(--accent-surface);
   --tonal-button-border: var(--accent-border-strong);
   --tonal-button-text: var(--primary-strong);
 
   /* Specialized surfaces */
-  --code-bg: #faf7fd;
-  --code-bg-strong: #f2ecf8;
-  --code-fg: #382f4b;
+  --code-bg: #f8fbfa;
+  --code-bg-strong: #edf3f1;
+  --code-fg: #23312e;
   --code-border: color-mix(in srgb, var(--primary) 14%, var(--border));
   --code-border-strong: color-mix(in srgb, var(--primary) 24%, var(--border));
   --code-inset: color-mix(in srgb, var(--surface-strong) 72%, transparent);
-  --code-shadow: 0 1px 2px rgba(54, 40, 74, 0.05), inset 0 1px 0 var(--code-inset);
+  --code-shadow: 0 1px 2px rgba(31, 48, 45, 0.05), inset 0 1px 0 var(--code-inset);
   --delete-underlay: linear-gradient(
     90deg,
     color-mix(in srgb, var(--danger) 18%, transparent),
@@ -97,19 +97,19 @@
   --notice-info-container: color-mix(in srgb, var(--primary-container) 56%, white);
   --notice-info-outline: color-mix(in srgb, var(--primary) 16%, var(--border));
   --notice-info-title: var(--primary-strong);
-  --notice-info-text: #392e4d;
+  --notice-info-text: #29433f;
   --notice-success-accent: var(--success);
   --notice-success-accent-soft: color-mix(in srgb, var(--success) 14%, transparent);
   --notice-success-container: color-mix(in srgb, var(--success-container) 62%, white);
   --notice-success-outline: color-mix(in srgb, var(--success) 16%, var(--border));
   --notice-success-title: var(--success-strong);
-  --notice-success-text: #234035;
+  --notice-success-text: #224034;
   --notice-error-accent: var(--danger);
   --notice-error-accent-soft: color-mix(in srgb, var(--danger) 14%, transparent);
   --notice-error-container: color-mix(in srgb, var(--danger-soft) 86%, white);
   --notice-error-outline: color-mix(in srgb, var(--danger) 18%, var(--border));
   --notice-error-title: var(--danger-strong);
-  --notice-error-text: #5b1b17;
+  --notice-error-text: #5a2316;
 
   --radius-xl: 28px;
   --radius-lg: 20px;
@@ -138,7 +138,11 @@ body,
 body {
   margin: 0;
   min-width: 320px;
-  background: inherit;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--primary-container) 74%, transparent), transparent 34%),
+    radial-gradient(circle at 84% 8%, color-mix(in srgb, var(--warning-container) 44%, transparent), transparent 24%),
+    linear-gradient(180deg, var(--bg-0), var(--bg-1));
+  background-attachment: fixed;
   color: var(--text-0);
 }
 

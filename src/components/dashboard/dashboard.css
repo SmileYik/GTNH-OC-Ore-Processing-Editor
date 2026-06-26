@@ -1,33 +1,36 @@
 .dashboard {
-  display: block;
-  column-count: 2;
-  column-gap: 16px;
-  column-fill: balance;
+  display: grid;
+  gap: 16px;
 }
 
-.dashboard > .panel {
-  width: 100%;
-  margin: 0 0 12px;
-  break-inside: avoid;
-  page-break-inside: avoid;
+.dashboard__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
 }
 
-.role-grid {
-  display: block;
-  column-width: 240px;
-  column-gap: 12px;
-  column-fill: balance;
+.dashboard__column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.dashboard .export-panel {
+  margin-top: 0;
 }
 
 @media (max-width: 1280px) {
-  .dashboard {
-    column-count: 1;
-    column-gap: 0;
+  .dashboard__grid {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 640px) {
-  .dashboard > .panel {
-    margin-bottom: 12px;
+  .dashboard,
+  .dashboard__grid,
+  .dashboard__column {
+    gap: 12px;
   }
 }

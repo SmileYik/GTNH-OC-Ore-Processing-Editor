@@ -11,18 +11,18 @@
     <style>
       :root {
         color-scheme: light;
-        --preloader-bg-0: #fcfbfd;
-        --preloader-bg-1: #f6f3f9;
+        --preloader-bg-0: #eef3f1;
+        --preloader-bg-1: #dde7e3;
         --preloader-surface: rgba(255, 255, 255, 0.88);
         --preloader-surface-strong: rgba(255, 255, 255, 0.96);
-        --preloader-surface-soft: #f6f2f9;
-        --preloader-border: #e4deea;
-        --preloader-text-0: #241d2e;
-        --preloader-text-1: #5b5367;
-        --preloader-text-2: #82788f;
-        --preloader-primary: #78649c;
-        --preloader-primary-soft: #f1edf7;
-        --preloader-shadow: 0 24px 60px rgba(70, 48, 104, 0.12);
+        --preloader-surface-soft: #e8efeb;
+        --preloader-border: #cfd9d4;
+        --preloader-text-0: #1f2b28;
+        --preloader-text-1: #52635d;
+        --preloader-text-2: #77857f;
+        --preloader-primary: #2f6f68;
+        --preloader-primary-soft: #dcebe6;
+        --preloader-shadow: 0 24px 60px rgba(31, 48, 45, 0.12);
       }
 
       html,
@@ -31,8 +31,8 @@
         min-width: 320px;
         min-height: 100%;
         background:
-          radial-gradient(circle at top left, rgba(120, 100, 156, 0.12), transparent 34%),
-          radial-gradient(circle at 84% 8%, rgba(120, 100, 156, 0.08), transparent 28%),
+          radial-gradient(circle at top left, rgba(47, 111, 104, 0.12), transparent 34%),
+          radial-gradient(circle at 84% 8%, rgba(154, 106, 20, 0.1), transparent 28%),
           linear-gradient(180deg, var(--preloader-bg-0), var(--preloader-bg-1));
       }
 
@@ -54,9 +54,9 @@
         place-items: center;
         padding: 24px;
         background:
-          radial-gradient(circle at top left, rgba(120, 100, 156, 0.1), transparent 32%),
-          radial-gradient(circle at 80% 12%, rgba(120, 100, 156, 0.06), transparent 26%),
-          linear-gradient(180deg, rgba(252, 251, 253, 0.98), rgba(246, 243, 249, 0.98));
+          radial-gradient(circle at top left, rgba(47, 111, 104, 0.1), transparent 32%),
+          radial-gradient(circle at 80% 12%, rgba(154, 106, 20, 0.08), transparent 26%),
+          linear-gradient(180deg, rgba(238, 243, 241, 0.98), rgba(221, 231, 227, 0.98));
       }
 
       .app-preloader__card {
@@ -108,7 +108,7 @@
         inset: 9px;
         border-radius: 50%;
         background: var(--preloader-surface-strong);
-        box-shadow: inset 0 0 0 1px rgba(120, 100, 156, 0.08);
+        box-shadow: inset 0 0 0 1px rgba(47, 111, 104, 0.08);
       }
 
       .app-preloader__copy {
@@ -149,7 +149,7 @@
         inset: 0 auto 0 -36%;
         width: 36%;
         border-radius: inherit;
-        background: linear-gradient(90deg, rgba(120, 100, 156, 0), var(--preloader-primary), rgba(120, 100, 156, 0.24));
+        background: linear-gradient(90deg, rgba(47, 111, 104, 0), var(--preloader-primary), rgba(47, 111, 104, 0.24));
         animation: app-preloader-slide 1.4s ease-in-out infinite;
       }
 

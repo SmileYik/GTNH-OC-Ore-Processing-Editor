@@ -61,53 +61,59 @@ export function Dashboard({
 }: DashboardProps) {
   return (
     <main className="dashboard">
-      <MineralProcessSection
-        processes={processes}
-        onAddProcess={onAddProcess}
-        onEditProcess={onEditProcess}
-        onDeleteProcess={onDeleteProcess}
-      />
+      <div className="dashboard__grid">
+        <div className="dashboard__column dashboard__column--primary">
+          <MineralProcessSection
+            processes={processes}
+            onAddProcess={onAddProcess}
+            onEditProcess={onEditProcess}
+            onDeleteProcess={onDeleteProcess}
+          />
 
-      <ProcessReverseSection
-        groups={reverseGroups}
-        onReuseProcess={onReuseProcess}
-      />
+          <ProcessReverseSection
+            groups={reverseGroups}
+            onReuseProcess={onReuseProcess}
+          />
 
-      <InterfaceSection
-        interfaces={interfaces}
-        availableRoles={roleNames}
-        onAddInterface={onAddInterface}
-        onEditInterface={onEditInterface}
-        onDeleteInterface={onDeleteInterface}
-      />
+          <InterfaceSection
+            interfaces={interfaces}
+            availableRoles={roleNames}
+            onAddInterface={onAddInterface}
+            onEditInterface={onEditInterface}
+            onDeleteInterface={onDeleteInterface}
+          />
+        </div>
 
-      <RoleSection
-        roles={roles}
-        interfaces={interfaces}
-        onAddRole={onAddRole}
-        onEditRole={onEditRole}
-        onDeleteRole={onDeleteRole}
-        onDeleteInterface={onDeleteInterface}
-      />
+        <div className="dashboard__column dashboard__column--secondary">
+          <RoleSection
+            roles={roles}
+            interfaces={interfaces}
+            onAddRole={onAddRole}
+            onEditRole={onEditRole}
+            onDeleteRole={onDeleteRole}
+            onDeleteInterface={onDeleteInterface}
+          />
 
-      <FilterListCard
-        title="白名单"
-        kindLabel="按职责管理规则，支持启用状态和注释，显示时优先展示注释。"
-        groups={idWhitelist}
-        onEdit={onEditWhitelist}
-      />
-      <FilterListCard
-        title="黑名单"
-        kindLabel="按职责管理规则，支持启用状态和注释，显示时优先展示注释。"
-        groups={idBlacklist}
-        onEdit={onEditBlacklist}
-      />
-      <FilterListCard
-        title="逻辑规则"
-        kindLabel="按角色管理逻辑表达式，支持拖拽命令单元、运算符和括号。"
-        groups={logicalRules}
-        onEdit={onEditLogicalRules}
-      />
+          <FilterListCard
+            title="白名单"
+            kindLabel="按职责管理规则，支持启用状态和注释，显示时优先展示注释。"
+            groups={idWhitelist}
+            onEdit={onEditWhitelist}
+          />
+          <FilterListCard
+            title="黑名单"
+            kindLabel="按职责管理规则，支持启用状态和注释，显示时优先展示注释。"
+            groups={idBlacklist}
+            onEdit={onEditBlacklist}
+          />
+          <FilterListCard
+            title="逻辑规则"
+            kindLabel="按角色管理逻辑表达式，支持拖拽命令单元、运算符和括号。"
+            groups={logicalRules}
+            onEdit={onEditLogicalRules}
+          />
+        </div>
+      </div>
 
       <ExportSection
         config={config}

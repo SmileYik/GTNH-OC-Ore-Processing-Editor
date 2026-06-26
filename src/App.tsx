@@ -135,9 +135,10 @@ export function App() {
       interfaces: interfaces.length,
       processes: processes.length,
       whitelistRules: idWhitelist.reduce((sum, group) => sum + group.rules.length, 0),
-      blacklistRules: idBlacklist.reduce((sum, group) => sum + group.rules.length, 0)
+      blacklistRules: idBlacklist.reduce((sum, group) => sum + group.rules.length, 0),
+      logicalRules: logicalRules.reduce((sum, group) => sum + group.rules.length, 0)
     }),
-    [idBlacklist, idWhitelist, interfaces, processes, roles]
+    [idBlacklist, idWhitelist, interfaces, logicalRules, processes, roles]
   );
   const startupRequests = useMemo(() => createResourceBootstrapRequests(userConfig), [userConfig]);
 
@@ -429,11 +430,32 @@ export function App() {
     }
   };
 
+  const databaseStatusText = startupError ? '资源数据库异常' : startupReady ? '资源数据库就绪' : '资源数据库加载中';
+  const databaseStatusClassName = startupError
+    ? 'overview-status overview-status--error'
+    : startupReady
+      ? 'overview-status overview-status--ready'
+      : 'overview-status overview-status--loading';
+  const overviewStats = [
+    { label: '矿物流程', value: stats.processes, hint: '正在维护的处理线' },
+    { label: '职责', value: stats.roles, hint: '机器职责节点' },
+    { label: 'ME 接口', value: stats.interfaces, hint: '已绑定地址' },
+    { label: '白名单规则', value: stats.whitelistRules, hint: '白名单总数' },
+    { label: '黑名单规则', value: stats.blacklistRules, hint: '屏蔽项总数' },
+    { label: '逻辑规则', value: stats.logicalRules, hint: '表达式单元总数' }
+  ];
+  const workflowSteps = [
+    '整理矿物处理流程',
+    '绑定职责与 ME 接口',
+    '补齐黑白名单与逻辑规则',
+    '预览并导出 Lua 配置'
+  ];
+
   return (
     <div className="app-shell" style={{ '--topbar-height': `${topbarHeight}px` } as CSSProperties}>
       <header className="topbar" ref={topbarRef}>
         <div className="topbar__copy">
-          <h1>OC 矿处配置编辑器</h1>
+          <h1>GTNH OC 矿处配置编辑器</h1>
           <div className="topbar__summary">
             <span className="topbar__summary-item topbar__summary-item--file" title={fileName}>
               当前文件：{fileName}
@@ -454,8 +476,8 @@ export function App() {
               className="button button--filled button--compact"
               onClick={() => setUserConfigOpen(true)}
               title={`语言 ${userConfig.lang.game} / ${userConfig.lang.display}，数据库 ${
-                userConfig.database.autoLoadItems ? '物品自动' : '物品手动'
-              }，${userConfig.database.autoLoadFluids ? '流体自动' : '流体手动'}`}
+                userConfig.database.autoLoadItems ? '物品自动' : '物品被动'
+              }，${userConfig.database.autoLoadFluids ? '流体自动' : '流体被动'}`}
             >
               用户配置
             </button>
@@ -478,6 +500,60 @@ export function App() {
       </header>
 
       {notice ? <Notice tone={notice.tone} floating>{notice.text}</Notice> : null}
+
+      <section className="workspace-overview" aria-label="当前配置概览">
+        <article className="overview-card overview-card--hero">
+          <div className="overview-card__header">
+            <span className="overview-card__eyebrow">当前配置</span>
+            <span className="chip chip--meta">本地自动保存</span>
+          </div>
+          <h2 className="overview-card__title mono" title={fileName}>
+            {fileName}
+          </h2>
+          <p className="overview-card__copy">
+            这套工作台把矿物处理线、职责绑定、规则过滤和 Lua 导出收在同一个视图里，适合连续整理整份矿处配置。
+          </p>
+          <div className="overview-card__meta">
+            <span className="chip chip--path">游戏语言 {userConfig.lang.game}</span>
+            <span className="chip chip--soft">显示语言 {userConfig.lang.display}</span>
+            <span className="chip chip--soft">
+              物品数据库 {userConfig.database.autoLoadItems ? '自动加载' : '被动加载'}
+            </span>
+            <span className="chip chip--soft">
+              流体数据库 {userConfig.database.autoLoadFluids ? '自动加载' : '被动加载'}
+            </span>
+            <span className={databaseStatusClassName}>{databaseStatusText}</span>
+          </div>
+        </article>
+
+        <article className="overview-card overview-card--deck">
+          <div className="overview-card__header">
+            <div className="overview-card__heading">
+              <span className="overview-card__eyebrow">工作台指标</span>
+              <span className="overview-card__caption">围绕配置编辑链路重新排布视图</span>
+            </div>
+          </div>
+
+          <div className="overview-stat-grid">
+            {overviewStats.map((item) => (
+              <div className="overview-stat" key={item.label}>
+                <span className="overview-stat__value">{item.value}</span>
+                <span className="overview-stat__label">{item.label}</span>
+                <span className="overview-stat__hint">{item.hint}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="overview-flow" aria-label="编辑流程">
+            {workflowSteps.map((step, index) => (
+              <div className="overview-flow__item" key={step}>
+                <span className="overview-flow__index">{index + 1}</span>
+                <span className="overview-flow__label">{step}</span>
+              </div>
+            ))}
+          </div>
+        </article>
+      </section>
 
       <Dashboard
         processes={processes}
