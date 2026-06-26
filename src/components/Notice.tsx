@@ -28,7 +28,14 @@ interface NoticeProps {
   floating?: boolean;
 }
 
+const NOTICE_META: Record<NoticeTone, { icon: string; title: string }> = {
+  info: { icon: 'i', title: '提示' },
+  success: { icon: 'OK', title: '已完成' },
+  error: { icon: '!', title: '操作失败' }
+};
+
 export function Notice({ tone, children, floating = false }: NoticeProps) {
+  const meta = NOTICE_META[tone];
   const className = [
     'notice',
     floating ? 'notice--floating' : 'notice--panel',
@@ -36,8 +43,14 @@ export function Notice({ tone, children, floating = false }: NoticeProps) {
   ].join(' ');
 
   return (
-    <div className={className} role="status" aria-live="polite">
-      {children}
+    <div className={className} role={tone === 'error' ? 'alert' : 'status'} aria-live={tone === 'error' ? 'assertive' : 'polite'}>
+      <div className="notice__icon" aria-hidden="true">
+        {meta.icon}
+      </div>
+      <div className="notice__content">
+        <strong className="notice__title">{meta.title}</strong>
+        <div className="notice__text">{children}</div>
+      </div>
     </div>
   );
 }
