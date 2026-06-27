@@ -7,6 +7,7 @@ import { MarkItemCommandDefinition } from './mark-item';
 import { MarkItemLabelCommandDefinition } from './mark-item-label';
 import { PrintCommandDefinition } from './print';
 import { EvalLuaCommandDefinition } from './eval-lua';
+import { ClearMeInterfaceCommandDefinition } from './clear-me-interface'
 
 export {
   CheckFluidCommandDefinition,
@@ -15,6 +16,7 @@ export {
   MarkFluidCommandDefinition,
   MarkItemCommandDefinition,
   MarkItemLabelCommandDefinition,
+  ClearMeInterfaceCommandDefinition,
   PrintCommandDefinition,
   EvalLuaCommandDefinition
 };
@@ -26,6 +28,7 @@ export const LOGICAL_COMMAND_DEFINITIONS = [
   MarkFluidCommandDefinition,
   MarkItemCommandDefinition,
   MarkItemLabelCommandDefinition,
+  ClearMeInterfaceCommandDefinition,
   PrintCommandDefinition,
   EvalLuaCommandDefinition
 ] satisfies LogicalCommandDefinition[];
